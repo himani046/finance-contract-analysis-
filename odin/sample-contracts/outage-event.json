@@ -1,0 +1,8 @@
+{
+  "id": "incident-001",
+  "type": "outage",
+  "date": "2026-10-25",
+  "title": "Production infrastructure outage",
+  "classification": "unplanned",
+  "duration_minutes": 95
+}

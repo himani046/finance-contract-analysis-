@@ -1,0 +1,10 @@
+Beacon Incident Support
+SYNTHETIC HACKATHON FIXTURE
+
+1.1 Beacon Operations provides incident support to Meridian Labs for the production service hosted on Atlas Cloud.
+
+4.1 Beacon must deliver an incident report identifying start time, end time and maintenance classification within 48 hours of an incident.
+
+4.2 A planned maintenance exclusion requires written evidence that the maintenance was announced at least 48 hours before the interruption.
+
+7.1 Failure to supply the report does not automatically establish whether the outage qualifies under any third-party agreement.

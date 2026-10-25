@@ -1,0 +1,12 @@
+Atlas Cloud Services
+SYNTHETIC HACKATHON FIXTURE
+
+1.1 This agreement is between Meridian Labs and Atlas Cloud, effective 1 January 2026 through 31 December 2026.
+
+4.2 A qualifying incident is an unplanned production outage lasting more than 60 consecutive minutes. Scheduled maintenance announced at least 48 hours in advance is excluded.
+
+8.2 For each qualifying incident, Meridian Labs is eligible for an INR 30,000 service credit. A written claim with an incident report must be received by 23:59 UTC on the seventh calendar day after the incident date. An approved timely claim preserves credit eligibility after this deadline.
+
+8.3 Service credits are the sole monetary remedy and are capped at INR 30,000 per incident. Credits are applied to future invoices, not paid in cash.
+
+11.1 The agreement renews on 1 January 2027 for twelve months unless written non-renewal notice is received no later than 1 December 2026.

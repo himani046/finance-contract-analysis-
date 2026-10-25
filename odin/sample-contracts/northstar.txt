@@ -1,0 +1,12 @@
+Northstar Enterprise SLA
+SYNTHETIC HACKATHON FIXTURE
+
+1.1 Meridian Labs provides a production analytics service to Northstar Retail from 1 January 2026 through 31 December 2026.
+
+3.1 The production analytics service depends on the Atlas Cloud production infrastructure.
+
+6.1 An unplanned production outage lasting more than 60 consecutive minutes requires Meridian Labs to issue an INR 100,000 service credit to Northstar Retail within 30 calendar days of the incident date. Scheduled maintenance announced at least 48 hours in advance is excluded. The credit is capped at INR 100,000 per incident.
+
+6.2 An incident notification must be provided to the customer within 24 hours of detection.
+
+9.1 Customer service credits are independent of any recovery Meridian Labs may obtain from its infrastructure providers.

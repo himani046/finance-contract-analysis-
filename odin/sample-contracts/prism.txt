@@ -1,0 +1,8 @@
+Prism Analytics License
+SYNTHETIC HACKATHON FIXTURE
+
+1.1 Meridian Labs licenses Prism Analytics for INR 240,000 per annual term, from 1 December 2025 to 30 November 2026.
+
+5.1 This license renews automatically on 1 December 2026 for another annual term at INR 240,000 unless written cancellation is received by 1 November 2026 at 23:59 UTC.
+
+5.2 Cancellation prevents future renewal only; it does not refund fees paid for the current term.

@@ -1,0 +1,8 @@
+Aegis Data Processing
+SYNTHETIC HACKATHON FIXTURE
+
+2.1 Aegis processes personal data for Meridian Labs during the term of the services agreement.
+
+7.1 Aegis must notify Meridian Labs within 24 hours after confirming unauthorized access to personal data. A service outage alone does not establish unauthorized access.
+
+8.1 Aegis must maintain an audit trail of incident notifications. No monetary remedy is specified in this schedule.

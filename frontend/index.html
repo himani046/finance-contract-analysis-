@@ -1,0 +1,1706 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Odin — Contract Intelligence</title>
+<style>
+:root{--bg:#e9eae4;--p:#ffffff;--line:#d7d9cf;--txt:#151813;--muted:#777d6e;--cyan:#81916f;--gold:#c89a45;--green:#50765c}
+/* Phase 5 review readability refinements */
+:root{--muted:#777d6e;--soft:#50564a;--red:#b9504b}
+.card h4{font-size:14px;margin:22px 0 10px;color:#151813}
+.card .muted{font-size:14px;line-height:1.65}
+.agentlist .agent p,.agentlist .small,.evidence .meta,.agent .meta{font-size:13px;line-height:1.65}
+.evidence{padding:16px;margin-top:10px}
+.evidence> b{font-size:14px}
+.evidence blockquote{font-size:14px;line-height:1.75;padding:10px 0 10px 14px;margin:12px 0;color:#151813;overflow-wrap:anywhere}
+#groundingSummary{grid-template-columns:repeat(3,minmax(0,1fr))}
+#groundingSummary .agent{min-height:92px}
+#groundingSummary .agent p{font-size:14px;color:var(--soft);overflow-wrap:anywhere}
+#groundingEvidence{grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch}
+#groundingEvidence .evidence{margin:0;min-width:0}
+#groundingEvidence .meta{overflow-wrap:anywhere}
+#groundingGaps{grid-template-columns:repeat(2,minmax(0,1fr))}
+#groundingGaps .agent{border-left:3px solid var(--gold);padding:14px}
+#groundingGaps .agent p{font-size:14px;color:#62695d;margin:0;overflow-wrap:anywhere}
+#groundingConflicts{grid-template-columns:repeat(2,minmax(0,1fr))}
+#followupStatus{background:#fff3d5;color:#876521}
+#loopStopReason{font-size:16px;font-weight:800;text-transform:capitalize;color:#876521}
+#loopBudget{font-size:13px}
+#loopRemainingGaps p{font-size:14px;line-height:1.65;border-bottom:1px solid var(--line);padding:5px 0;overflow-wrap:anywhere}
+#loopNextAction{font-size:14px;line-height:1.7;color:#151813}
+#loopApproval{font-size:13px;font-weight:700;line-height:1.65}
+.action h3{font-size:16px}
+#body{font-size:15px;line-height:1.8;overflow-wrap:anywhere}
+#actioncite{font-size:13px;line-height:1.7}
+details summary{cursor:pointer;color:var(--cyan);font-size:13px;font-weight:700;padding:6px 0}
+details[open] summary{margin-bottom:8px}
+@media(max-width:850px){#groundingSummary{grid-template-columns:repeat(2,minmax(0,1fr))}#groundingEvidence{grid-template-columns:1fr}#groundingGaps,#groundingConflicts{grid-template-columns:1fr}}
+@media(max-width:560px){#groundingSummary{grid-template-columns:1fr}}
+
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top left,#f3f4ec,#e9eae4 55%);color:var(--txt);font:14px/1.5 system-ui,sans-serif}header{padding:20px 4vw;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:16px;align-items:center;position:sticky;top:0;background:#e9eae4ed;z-index:3}h1{font-size:16px;letter-spacing:.1em;margin:0}header p,.muted{color:var(--muted)}header p{margin:3px 0;font-size:12px}main{max-width:1300px;margin:auto;padding:30px 4vw}.intro{display:flex;justify-content:space-between;gap:20px;align-items:end;margin-bottom:22px}.eyebrow{color:var(--cyan);text-transform:uppercase;letter-spacing:.15em;font-size:11px;font-weight:800}h2{font-size:clamp(28px,4vw,44px);line-height:1.08;margin:8px 0}p{line-height:1.6}.intro p{max-width:650px;color:var(--muted)}select,button{background:var(--p);color:var(--txt);border:1px solid var(--line);border-radius:9px;padding:10px}button{background:var(--cyan);color:#ffffff;border:0;font-weight:800;cursor:pointer}button:disabled{opacity:.5}.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}.card{background:linear-gradient(145deg,#ffffff,#fbfcf8);border:1px solid var(--line);border-radius:15px;padding:18px;min-width:0}.metric{grid-column:span 3}.wide{grid-column:span 8}.side{grid-column:span 4}.half{grid-column:span 6}.full{grid-column:span 12}.label{color:var(--muted);font-size:12px}.value{font-size:27px;font-weight:800;margin:7px 0}.card h3{font-size:14px;margin:0 0 14px;display:flex;justify-content:space-between;gap:12px}.agentlist{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.agent,.evidence,.action,.milestone{background:#f3f4ec;border:1px solid var(--line);border-radius:10px;padding:12px}.agent p,.small{font-size:11px;color:var(--muted)}.flow{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}.step{padding:7px 9px;border:1px solid var(--line);border-radius:7px;background:#f3f4ec;font-size:11px}.risk{font-size:18px}.evidence{margin-top:10px}.meta{font-size:11px;color:var(--muted)}blockquote{border-left:2px solid var(--cyan);padding-left:10px;margin:9px 0;white-space:pre-wrap;font-size:12px}.milestones{display:grid;gap:9px}.milestone{display:grid;grid-template-columns:100px 1fr auto;align-items:center;gap:8px;font-size:12px}.date{color:var(--cyan);font-weight:800}.tag{font-size:10px;border-radius:6px;background:#edf0e8;padding:4px 7px;color:#62695d}.good{color:var(--green)}.decision{border-left:3px solid var(--gold);padding-left:12px}.notice{background:#fff3d5;border:1px solid #e8d9b5;border-radius:9px;padding:12px;font-size:12px;color:#876521}.auditrow{display:grid;grid-template-columns:90px 1fr auto;gap:8px;padding:9px 0;border-bottom:1px solid var(--line);font-size:12px}.hidden{display:none}.err{padding:12px;background:#fbe8e5;border-radius:8px}.footer{text-align:center;color:#8a8e80;font-size:11px;margin:25px}@media(max-width:850px){.metric{grid-column:span 6}.wide,.side,.half{grid-column:span 12}.intro{display:block}.controls{margin-top:12px}}#portfolioOverview{grid-template-columns:repeat(3,minmax(0,1fr))}
+#contractExplorer,#riskHeatmap{grid-template-columns:repeat(3,minmax(0,1fr))}
+.contract-explorer-card{display:flex;flex-direction:column;align-items:stretch}
+.contract-explorer-card details{margin:8px 0}
+.contract-explorer-card .jump-contract{margin-top:auto;align-self:flex-start}
+#eventAuditTimeline .milestone{grid-template-columns:130px minmax(0,1fr) auto}
+#eventAuditTimeline .milestone b{overflow-wrap:anywhere}
+.heat-high,.heat-critical{background:#fbe8e5;color:#a6423d}
+.heat-medium{background:#fff3d5;color:#876521}
+.heat-low{background:#e6f2e7;color:#3d6b49}
+@media(max-width:1000px){#portfolioOverview,#contractExplorer,#riskHeatmap{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){#portfolioOverview,#contractExplorer,#riskHeatmap{grid-template-columns:1fr}#eventAuditTimeline .milestone{grid-template-columns:1fr}.contract-explorer-card .jump-contract{margin-top:8px}}
+@media(max-width:560px){.agentlist{grid-template-columns:1fr}.milestone{grid-template-columns:85px 1fr}.milestone .tag{grid-column:2}.auditrow{grid-template-columns:70px 1fr}}
+
+/* Light theme skin only — original dashboard markup, data flow, and interactions are preserved. */
+body{background:radial-gradient(ellipse at top left,#f3f4ec,#e9eae4 58%);color:var(--txt)}header{background:#e9eae4ed;backdrop-filter:blur(14px)}.card,.agent,.evidence,.action,.milestone{box-shadow:0 10px 30px #2026160b;border-radius:18px}.card{border-color:var(--line)}button,select,input,textarea{color:var(--txt)}button{background:#fff;border:1px solid var(--line);border-radius:999px}button:hover{border-color:#81916f}button#run,button.primary{background:#151813;color:#fff}.tag{border-radius:999px}.evidence blockquote,blockquote{color:var(--txt)}.notice{background:#fff3d5;border-color:#e8d9b5;color:#876521}.err{background:#fbe8e5;color:#a6423d}.flow .step{background:#fff}.contract-explorer-card,.agentlist .agent{background:#fff}
+
+/* Reference-inspired visual skin. All existing features, data bindings and analysis handlers remain in place. */
+:root{--bg:#e9eae4;--p:#fff;--line:#d7d9cf;--txt:#151813;--muted:#777d6e;--cyan:#81916f;--gold:#c89a45;--green:#50765c}
+html{scroll-behavior:smooth;scroll-padding-top:95px}
+body{max-width:none;margin:0;padding:0 2.35vw 30px;background:radial-gradient(ellipse at 30% 0%,#d9d7cd 0,transparent 300px),#e9eae4;color:var(--txt)}
+header{position:sticky;top:0;z-index:20;display:grid;grid-template-columns:minmax(190px,1fr) auto auto;align-items:center;gap:22px;margin:0 -2.35vw 34px;padding:20px 2.35vw;background:rgba(233,234,228,.94);backdrop-filter:blur(16px);border-bottom:1px solid #d7d9cf}
+header h1{font-size:25px;letter-spacing:-1.2px;margin:0;font-weight:750}header p{margin:4px 0 0;color:var(--muted);font-size:12px}
+.top-tabs{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.top-tabs a{display:inline-flex;align-items:center;justify-content:center;padding:13px 20px;border:1px solid #c9ccbf;border-radius:999px;text-decoration:none;color:#596052;font-size:13px;font-weight:600;white-space:nowrap}.top-tabs a:hover,.top-tabs a:focus{background:#fff;color:#151813;border-color:#151813}.top-tabs a.active{background:#151813;color:#fff;border-color:#151813}
+#health{justify-self:end}
+.intro{padding:14px 0 22px}
+.card,.agent,.evidence,.action,.milestone{border-radius:20px;box-shadow:0 8px 26px rgba(32,38,22,.035)}
+.card{background:#fff;border:1px solid rgba(215,217,207,.72);padding:20px}
+.card h2,.card h3{letter-spacing:-.45px}
+.metric{min-height:150px}
+button{transition:background .15s,border-color .15s,transform .15s}button:hover{transform:translateY(-1px)}
+input,select,textarea{background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px}
+.tag{border-radius:999px}
+section[id],.wide[id],.side[id],.half[id]{scroll-margin-top:105px}
+@media(max-width:1000px){header{grid-template-columns:1fr auto}.top-tabs{grid-column:1/-1;grid-row:2;justify-content:flex-start}#health{grid-column:2;grid-row:1}}
+@media(max-width:560px){body{padding:0 14px 24px}header{margin:0 -14px 22px;padding:14px;grid-template-columns:1fr auto;gap:10px}.top-tabs{overflow-x:auto;flex-wrap:nowrap;padding-bottom:4px}.top-tabs a{padding:10px 14px}.card{padding:15px}}
+
+/* Multi-page shell: moves existing feature cards without recreating their IDs or handlers. */
+body{max-width:none;padding:0 2.35vw 30px;background:radial-gradient(ellipse at 28% 0%,#d9d7cd 0,transparent 320px),#e9eae4}
+header{margin:0 -2.35vw 0;padding:20px 2.35vw;grid-template-columns:minmax(170px,1fr) auto auto;gap:18px}
+header h1{font-size:24px;letter-spacing:-1px;font-weight:800}
+.top-tabs{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.top-tabs button{background:transparent;color:#596052;border:1px solid #c9ccbf;border-radius:999px;padding:12px 17px;font:600 13px system-ui;white-space:nowrap;cursor:pointer}
+.top-tabs button.active{background:#151813;color:#fff;border-color:#151813}
+.top-tabs button:hover{background:#fff;color:#151813}
+main{max-width:1600px;padding:28px 0}
+.intro{align-items:center;min-height:200px;padding:12px 0 24px}
+.intro .eyebrow{font-size:11px;letter-spacing:2px;font-weight:800}
+.intro h2{font-size:clamp(36px,4vw,58px);line-height:1.06;letter-spacing:-2px;margin:14px 0}
+.intro p{max-width:760px;font-size:16px;line-height:1.7}
+#dash:not(.hidden){display:block}
+.page-view{display:none}
+.page-view.active{display:block}
+#dash.hidden{display:none!important}
+#loading.hidden,#error.hidden{display:none!important}
+.page-grid{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:16px;align-items:stretch}
+.page-grid>.card{grid-column:span 6;min-width:0}
+.page-grid>.card.full{grid-column:1/-1}
+.page-grid>.card.wide{grid-column:span 8}
+.page-grid>.card.side{grid-column:span 4}
+.page-grid>.card.half{grid-column:span 6}
+.page-grid>.card.metric{grid-column:span 3;min-height:150px;display:flex;flex-direction:column;justify-content:center}
+.card{border:1px solid #e2e4dc;border-radius:22px;padding:22px;background:#fff;box-shadow:0 10px 28px #20261608}
+.card h3{font-size:17px;letter-spacing:-.4px}
+.card .value{font-size:34px;letter-spacing:-1.2px}
+.metric .value{font-size:42px}
+.quick-links{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:18px 0}
+.quick-link{display:block;text-align:left;padding:20px;background:#fff;border:1px solid #e0e2d9;border-radius:20px;color:#151813;cursor:pointer}
+.quick-link b{display:block;font-size:16px;margin-bottom:8px}.quick-link span{font-size:12px;color:#777d6e;line-height:1.5}.quick-link:hover{border-color:#81916f;transform:translateY(-2px)}
+#overviewMetrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.overview-metric{background:#fff;border:1px solid #e0e2d9;border-radius:22px;padding:20px}
+.overview-metric .label{font-size:12px;color:#777d6e}.overview-metric .value{font-size:38px;letter-spacing:-1.5px;margin:12px 0 5px}.overview-metric .hint{font-size:11px;color:#777d6e}
+.graph-wrap{width:100%;overflow:auto;background:#f7f8f3;border:1px solid #e2e4dc;border-radius:18px;min-height:250px}
+.graph-wrap svg{display:block;width:100%;min-width:650px;height:320px}
+.graph-node{cursor:pointer}.graph-node rect{fill:#fff;stroke:#cbd0c2;stroke-width:1.5}.graph-node:hover rect,.graph-node:focus rect{stroke:#81916f;stroke-width:3}.graph-node text{fill:#151813;font-size:13px}.graph-edge{stroke:#a6ad9a;stroke-width:2}.graph-edge-label{fill:#6c7462;font-size:10px}
+.section-actions{display:flex;justify-content:flex-end;gap:8px;margin:0 0 14px}.section-actions button{background:#151813;color:white;border:0;border-radius:999px;padding:11px 16px}
+@media(max-width:1050px){header{grid-template-columns:1fr auto}.top-tabs{grid-column:1/-1;grid-row:2;overflow-x:auto;flex-wrap:nowrap;padding-bottom:4px}#health{grid-column:2;grid-row:1}.page-grid>.card.metric{grid-column:span 6}.quick-links{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){body{padding:0 14px 22px}header{margin:0 -14px;padding:14px;grid-template-columns:1fr auto}header h1{font-size:18px}.top-tabs button{padding:10px 13px}.intro{display:block;padding:18px 0}.intro .controls{margin-top:18px}.page-grid{grid-template-columns:1fr}.page-grid>.card,.page-grid>.card.full,.page-grid>.card.wide,.page-grid>.card.side,.page-grid>.card.half,.page-grid>.card.metric{grid-column:1/-1}#overviewMetrics{grid-template-columns:repeat(2,minmax(0,1fr))}.quick-links{grid-template-columns:1fr 1fr}.card{padding:16px}}
+
+/* Ensure the initial loading state wins over ID selectors, and keep the overview hero close to the reference. */
+.intro{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(280px,.7fr);gap:32px;align-items:center;min-height:245px;padding:34px 0 28px}
+.intro .eyebrow{color:#81916f;text-transform:uppercase;letter-spacing:2.5px;font-size:11px;font-weight:800}
+.intro h2{font-size:clamp(42px,4.4vw,66px);line-height:1.02;letter-spacing:-2.8px;margin:16px 0}
+.intro p{font-size:16px;line-height:1.65;color:#777d6e;max-width:780px}
+.intro .controls{display:flex;align-items:center;justify-content:flex-end;gap:12px;flex-wrap:wrap}
+.intro .controls label{font-size:14px;color:#151813}
+#run{padding:15px 22px;background:#151813;color:#fff;border:0;border-radius:999px;font-weight:700}
+#date{padding:12px 14px;border:1px solid #c9ccbf;border-radius:12px;background:#fff;color:#151813}
+#loading{margin:10px 0 26px;background:#fff;border:1px solid #d7d9cf;border-radius:22px;padding:26px;font-size:17px;color:#596052}
+#health{font-size:12px;color:#596052;background:#f1f2eb;border:1px solid #d7d9cf;padding:8px 12px;border-radius:999px}
+@media(max-width:850px){.intro{grid-template-columns:1fr;gap:12px}.intro .controls{justify-content:flex-start}}
+
+/* Interactive, orbitable contract relationship canvas */
+.graph-wrap{overflow:hidden;min-height:0;background:#f7f8f3;border:1px solid #e2e4dc;border-radius:18px}
+.graph-toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:12px 14px;border-bottom:1px solid #e2e4dc;color:#68725d;font-size:12px}
+.graph-toolbar>div{display:flex;gap:6px}.graph-toolbar button{background:#fff;color:#25291f;border:1px solid #d8dccf;border-radius:999px;padding:7px 12px;font-size:12px}
+.graph-stage{height:480px;position:relative;overflow:hidden;isolation:isolate;background:radial-gradient(ellipse at 50% 45%,#fff 0%,#f7f8f3 55%,#eef0e8 100%);touch-action:pan-y;outline:none}
+.relationship-canvas{display:block;width:100%;height:100%;cursor:grab;touch-action:none}.relationship-canvas.dragging{cursor:grabbing}
+.graph-tip{position:absolute;left:14px;bottom:12px;pointer-events:none;background:#ffffffdc;border:1px solid #e2e4dc;border-radius:999px;padding:7px 11px;font-size:11px;color:#68725d}
+.graph-footnote{font-size:12px;color:#777d6e;margin:10px 0 0}
+.graph-empty{min-height:250px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:8px;color:#68725d;padding:25px}.graph-empty b{font-size:16px;color:#25291f}.graph-empty span{max-width:520px;font-size:13px}
+.graph-detail{position:absolute;z-index:5;width:min(310px,calc(100% - 24px));max-height:calc(100% - 24px);overflow:auto;background:#fff;border:1px solid #d7dccd;border-radius:16px;padding:17px;box-shadow:0 18px 50px #222a1830;color:#25291f}.graph-detail.hidden{display:none}.graph-detail-close{float:right;background:#f1f2eb;color:#25291f;border:0;border-radius:50%;width:28px;height:28px;padding:0;font-size:18px}.graph-detail-kicker{font-size:10px;font-weight:800;letter-spacing:1.5px;color:#81916f}.graph-detail h4{font-size:23px;margin:6px 0}.graph-detail>p{font-size:12px;color:#68725d;margin:0 0 12px}.graph-detail-edge{border-top:1px solid #e7e9e1;padding:10px 0}.graph-detail-edge b,.graph-detail-edge span,.graph-detail-edge small{display:block}.graph-detail-edge b{font-size:12px}.graph-detail-edge span,.graph-detail-edge small{font-size:11px;color:#68725d;margin-top:4px}.graph-detail-edge blockquote{font-size:11px;margin:7px 0;max-height:75px;overflow:auto}.graph-open-contract{margin-top:8px;width:100%;border-radius:999px;background:#151813;color:#fff;padding:10px}
+@media(max-width:650px){.graph-stage{height:410px}.graph-toolbar{align-items:flex-start;flex-direction:column}}
+
+.graph-stage{height:560px}.graph-toolbar{font-size:13px}.graph-tip{font-size:12px;font-weight:600;padding:9px 13px}.graph-detail h4{font-size:26px}.graph-detail-edge b{font-size:13px}.graph-detail-edge span,.graph-detail-edge small,.graph-detail-edge blockquote{font-size:12px;line-height:1.5}@media(max-width:650px){.graph-stage{height:460px}}
+
+/* FR1 orchestrator visualization */
+.orchestrator-panel{grid-column:1/-1!important;padding:26px!important}.orch-head{display:flex;justify-content:space-between;align-items:flex-start;gap:18px}.orch-head h3{font-size:24px;margin:7px 0}.orch-head .eyebrow{font-size:10px;letter-spacing:2px;color:#81916f;font-weight:800}.orch-last-run{font-size:11px;color:#68725d;background:#f1f2eb;border-radius:999px;padding:9px 12px;white-space:nowrap}
+.orch-pipeline{display:flex;align-items:stretch;gap:8px;margin:20px 0;overflow-x:auto;padding:3px 2px 12px}.orch-step{flex:1;min-width:130px;border:1px solid #e0e3d8;background:#f8f9f5;border-radius:14px;padding:13px;display:flex;flex-direction:column;gap:6px}.orch-step>span{font-size:10px;letter-spacing:1px;color:#81916f;font-weight:800}.orch-step b{font-size:13px}.orch-step small{font-size:11px;line-height:1.4;color:#777d6e}.orch-pipeline>i{align-self:center;color:#9ba58f;font-style:normal}
+.orch-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:12px 0 24px}.orch-stats>div{background:#fff;border:1px solid #e0e3d8;border-radius:14px;padding:14px}.orch-stats span,.orch-stats b{display:block}.orch-stats span{font-size:11px;color:#777d6e}.orch-stats b{font-size:27px;margin-top:7px;letter-spacing:-1px}
+.orchestrator-panel>h4{font-size:14px;margin:22px 0 10px}.orch-fr-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.orch-fr{border:1px solid #e0e3d8;border-radius:14px;padding:14px;background:#fff}.orch-fr-top{display:flex;align-items:center;justify-content:space-between;gap:10px}.orch-fr-top b{font-size:12px}.orch-fr p{font-size:12px;color:#68725d;line-height:1.55;margin:8px 0 0}.orch-status{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.4px;border-radius:999px;padding:5px 8px;background:#edf0e7;color:#526348}.orch-status.partial{background:#fff2d7;color:#89641d}.orch-status.missing{background:#f7e8e5;color:#9a5148}
+.orch-workstreams{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.orch-ws{border:1px solid #e0e3d8;border-radius:14px;padding:14px;background:#fff;min-width:0}.orch-ws-top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}.orch-ws b{font-size:13px}.orch-ws p{font-size:11px;color:#68725d;line-height:1.5;margin:7px 0}.orch-ws .bar{height:5px;border-radius:999px;background:#edf0e7;overflow:hidden;margin:10px 0}.orch-ws .bar span{display:block;height:100%;background:#81916f;width:0}.orch-ws .meta{font-size:10px;color:#777d6e}
+.orch-trace{display:flex;gap:8px;overflow-x:auto;padding-bottom:5px}.orch-event{min-width:150px;max-width:230px;border-left:3px solid #81916f;background:#f8f9f5;border-radius:0 10px 10px 0;padding:11px}.orch-event b,.orch-event span,.orch-event small{display:block}.orch-event b{font-size:11px}.orch-event span{font-size:11px;margin-top:5px;color:#68725d}.orch-event small{font-size:10px;color:#777d6e;margin-top:5px}
+@media(max-width:850px){.orch-stats{grid-template-columns:repeat(2,minmax(0,1fr))}.orch-workstreams{grid-template-columns:repeat(2,minmax(0,1fr))}.orch-head{display:block}.orch-last-run{display:inline-block;margin-top:8px}}
+@media(max-width:560px){.orch-fr-list,.orch-workstreams{grid-template-columns:1fr}.orch-pipeline>i{display:none}.orch-step{min-width:145px}.orch-stats b{font-size:22px}}
+
+/* Odin modular visual polish: typography, layered cards, useful hover feedback */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
+:root{--txt:#171b15;--muted:#687163;--cyan:#81936e;--green:#6f845c;--line:#dce1d4;--p:#fff}
+body{font-family:'DM Sans',Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:15px;line-height:1.65;letter-spacing:.005em}
+h1,h2,h3,h4,.value,.overview-metric .value{font-family:'Manrope','DM Sans',sans-serif;letter-spacing:-.035em}
+header h1{font-size:21px;font-weight:800;letter-spacing:-.045em}
+header p,.muted{line-height:1.65}
+.card,.overview-metric{transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease,background .22s ease}
+.card{position:relative;overflow:hidden;border-radius:22px;background:linear-gradient(145deg,#fff 0%,#fcfdf9 100%);box-shadow:0 5px 18px rgba(34,44,25,.035)}
+.card:before{content:'';position:absolute;inset:0 auto 0 0;width:3px;background:linear-gradient(180deg,#8fa17b,#d5dec9);opacity:0;transition:opacity .2s ease;pointer-events:none}
+.card:hover{transform:translateY(-3px);border-color:#bdc9b0;box-shadow:0 16px 36px rgba(45,58,34,.09);background:linear-gradient(145deg,#fff 0%,#f7faf2 100%)}.card:hover:before{opacity:1}
+.card h3{font-size:16px;font-weight:800;line-height:1.4}.card p,.card li{font-size:14px;line-height:1.7}
+.metric{background:linear-gradient(145deg,#fff 0%,#f5f8f0 100%);border-color:#dfe5d8}.metric .value,.value{font-family:'Manrope',sans-serif;font-size:30px;font-weight:800;letter-spacing:-.055em}
+.overview-metric{position:relative;border-radius:22px;padding:22px;background:linear-gradient(145deg,#fff,#f7f9f3);box-shadow:0 5px 18px rgba(34,44,25,.035)}
+.overview-metric:hover{transform:translateY(-4px);border-color:#aeba9f;box-shadow:0 16px 34px rgba(45,58,34,.1);background:linear-gradient(145deg,#fafff5,#edf3e6)}
+.overview-metric .label{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#737d69}.overview-metric .value{font-size:40px;color:#20271b}.overview-metric .hint{font-size:12px;line-height:1.5;color:#737d69}
+button,select,input,textarea{font-family:inherit;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease,background .18s ease}button:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(42,52,32,.1)}button:focus-visible,a:focus-visible,select:focus-visible{outline:3px solid #b6c9a6;outline-offset:3px}
+.agent,.evidence,.action,.milestone{border-radius:14px;background:linear-gradient(145deg,#fff,#f6f8f2);transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}.agent:hover,.evidence:hover,.action:hover,.milestone:hover{transform:translateY(-2px);border-color:#bdc9b0;box-shadow:0 10px 22px rgba(45,58,34,.08)}
+.tag{font-family:'DM Sans',sans-serif;font-weight:700;letter-spacing:.015em}.page-grid{gap:18px}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important;scroll-behavior:auto!important}}
+
+.graph-toolbar>div{flex-wrap:wrap}.graph-toolbar button{min-width:34px;min-height:34px;font-weight:700}.relationship-canvas{touch-action:none;user-select:none}.graph-stage{overflow:hidden}
+
+/* Reference-inspired interactive cards: neutral by default, charcoal mist on hover. */
+.card,.overview-metric,.metric,.agent,.evidence,.action,.milestone{
+  color:#171b15;
+  background:#fff;
+  border:1px solid #e0e3da;
+  transition:background .28s ease,color .22s ease,border-color .22s ease,box-shadow .28s ease,transform .28s cubic-bezier(.2,.75,.25,1);
+}
+.card,.overview-metric{box-shadow:0 4px 18px rgba(30,36,25,.025)}
+.card:hover,.card:focus-within,.overview-metric:hover,.metric:hover,.agent:hover,.evidence:hover,.action:hover,.milestone:hover{
+  color:#fff;
+  background:linear-gradient(125deg,#747873 0%,#555d5b 46%,#3f5153 100%);
+  border-color:#6d7770;
+  box-shadow:0 20px 42px rgba(35,42,34,.19);
+  transform:translateY(-4px);
+}
+.card:hover h1,.card:hover h2,.card:hover h3,.card:hover h4,.card:hover p,.card:hover li,.card:hover small,.card:hover label,
+.card:hover .value,.card:hover .muted,.card:hover .label,.card:hover .hint,
+.overview-metric:hover h1,.overview-metric:hover h2,.overview-metric:hover h3,.overview-metric:hover p,
+.overview-metric:hover .value,.overview-metric:hover .label,.overview-metric:hover .hint,
+.metric:hover h1,.metric:hover h2,.metric:hover h3,.metric:hover p,.metric:hover small,.metric:hover .value,
+.agent:hover,.evidence:hover,.action:hover,.milestone:hover{color:#fff}
+.card:hover:before{opacity:.75;background:linear-gradient(180deg,#fff,#bfc9bd)}
+.card:hover a,.card:hover button,.overview-metric:hover a{color:inherit}
+.card:hover .tag,.card:hover .badge,.card:hover .pill{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.28);color:#fff}
+.card svg,.overview-metric svg{transition:opacity .22s ease,filter .22s ease}
+.card:hover svg,.overview-metric:hover svg{filter:brightness(0) invert(1);opacity:.92}
+.card button:hover,.overview-metric button:hover{background:rgba(255,255,255,.16);color:#fff;border-color:rgba(255,255,255,.4)}
+.card:focus-within,.overview-metric:focus-within{outline:2px solid #91a182;outline-offset:2px}
+.top-tabs button:hover{background:#dfe2d8;color:#20241d;box-shadow:none}
+.top-tabs button.active:hover{background:#151813;color:#fff}
+@media(prefers-reduced-motion:reduce){.card,.overview-metric,.metric,.agent,.evidence,.action,.milestone{transition:none}}
+
+/* FR9 dashboard feature panels */
+.fr9-panel{padding:24px!important}.fr9-title,.fr9-section-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}.fr9-title h3{font-size:24px;margin:6px 0}.fr9-section{border-top:1px solid #e5e7df;margin-top:22px;padding-top:20px}.fr9-section-head h4{font-size:16px;margin:0 0 5px}.fr9-section-head p{font-size:12px;color:#747b6b;margin:0 0 12px;max-width:720px}.fr9-section-head>b{font-size:13px;white-space:nowrap}.fr9-scale{display:flex;justify-content:space-between;color:#777d6e;font-size:11px}.fr9-time-status{font-size:11px;color:#68725d;margin-top:9px}.fr9-panel input[type=range]{width:100%;accent-color:#81916f;margin:14px 0 6px}.fr9-graph-shell{height:400px;position:relative;overflow:hidden;border:1px solid #e2e5dc;border-radius:16px;background:radial-gradient(ellipse at center,#fff,#f4f6ef)}.fr9-graph-canvas{width:100%;height:100%;display:block;cursor:grab;touch-action:none}.fr9-graph-canvas.hidden{display:none}.fr9-graph-empty{height:100%;display:grid;place-items:center;padding:25px;text-align:center;color:#68725d;font-size:13px}.fr9-graph-legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:#68725d;margin:10px 0}.fr9-graph-legend span:nth-child(1){color:#81916f}.fr9-graph-legend span:nth-child(2){color:#b89a5a}.fr9-graph-legend span:nth-child(3){color:#607b99}.fr9-edge-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:12px}.graph-edge-row{border:1px solid #e1e4db;border-radius:12px;padding:11px;background:#fff;min-width:0}.graph-edge-row b,.graph-edge-row span,.graph-edge-row small{display:block;font-size:11px}.graph-edge-row span{color:#81916f;margin-top:5px}.graph-edge-row p{font-size:11px;color:#68725d;margin:6px 0;line-height:1.5}.graph-edge-row small{color:#777d6e}.fr9-exposure-grid{display:grid;grid-template-columns:minmax(220px,.7fr) minmax(0,1.3fr);gap:12px}.fr9-subcard{border:1px solid #e1e4db;border-radius:14px;padding:15px;min-width:0}.fr9-subcard h5,.fr9-alert-action h5{font-size:13px;margin:0 0 14px}.exposure-dial{width:190px;height:190px;border-radius:50%;margin:15px auto;display:grid;place-items:center;background:conic-gradient(#81916f var(--dial),#e9ece3 0);position:relative}.exposure-dial:before{content:"";position:absolute;inset:13px;border-radius:50%;background:#fff}.exposure-dial>div{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;padding:14px}.exposure-dial b{font-size:22px;max-width:150px;overflow-wrap:anywhere}.exposure-dial span{font-size:10px;color:#68725d;margin-top:5px}.heat-months,.heat-row{display:grid;grid-template-columns:minmax(80px,1.4fr) repeat(9,minmax(18px,1fr));gap:4px;align-items:center;margin-bottom:5px}.heat-months span{font-size:9px;color:#777d6e;text-align:center}.heat-months span:first-child{text-align:left}.heat-row>b{font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.heat-cell{height:22px;border-radius:5px;background:#eef0e8;text-align:center;font-size:10px;line-height:22px;color:#4e5846}.heat-level-1{background:#e0e8d7}.heat-level-2{background:#c5d5b4}.heat-level-3{background:#edcf9d}.heat-level-4{background:#d9a39a;color:#632f29}.fr9-debate{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.debate-column{border:1px solid #e1e4db;border-radius:14px;padding:15px;background:#fff;min-width:0}.debate-column h4{font-size:14px;margin:12px 0 8px}.debate-column p{font-size:12px;line-height:1.6;color:#555d4e;overflow-wrap:anywhere}.agent-role{font-size:10px;letter-spacing:1.2px;font-weight:800;padding:6px 8px;border-radius:999px;display:inline-block}.agent-role.loki{background:#f6e5e1;color:#934d43}.agent-role.heimdall{background:#e4edf5;color:#416783}.agent-role.tyr{background:#e8efdf;color:#526b40}.fr9-alert-action{display:grid;grid-template-columns:1fr 1fr;gap:12px}.alert-row{display:flex;gap:11px;padding:12px 0;border-bottom:1px solid #e8eae3}.alert-rank{font-size:12px;color:#81916f;font-weight:800}.alert-row b{font-size:12px}.alert-row p{font-size:11px;color:#68725d;margin:5px 0}.alert-row small{font-size:10px;color:#777d6e}.draft-action{background:#f8f9f5;border:1px solid #e1e4db;border-radius:13px;padding:14px}.draft-header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}.draft-header b{font-size:13px}.draft-action>p{font-size:12px;line-height:1.6;white-space:pre-wrap}.draft-citations{display:grid;gap:7px}.draft-citations span{border-left:3px solid #81916f;padding:6px 8px;background:#fff;font-size:10px;color:#68725d;overflow-wrap:anywhere}
+@media(max-width:850px){.fr9-exposure-grid,.fr9-alert-action{grid-template-columns:1fr}.fr9-debate{grid-template-columns:1fr}.fr9-edge-list{grid-template-columns:repeat(2,minmax(0,1fr))}.fr9-graph-shell{height:350px}}
+@media(max-width:560px){.fr9-title,.fr9-section-head{display:block}.fr9-title>.tag{display:inline-block;margin-top:10px}.fr9-edge-list{grid-template-columns:1fr}.heat-months,.heat-row{grid-template-columns:minmax(60px,1.2fr) repeat(9,minmax(13px,1fr));gap:2px}.heat-cell{height:18px;line-height:18px;font-size:9px}.heat-months span{font-size:8px}.fr9-graph-shell{height:300px}}
+
+/* Centered Odin navigation and more breathing room between dashboard modules. */
+header{grid-template-columns:minmax(150px,1fr) auto minmax(150px,1fr);gap:24px;padding-top:17px;padding-bottom:17px}
+header .odin-brand{justify-self:start;min-width:0}
+header .odin-brand h1{font-family:'Manrope','DM Sans',sans-serif;font-size:31px;font-weight:800;line-height:1;letter-spacing:-1.8px;text-transform:lowercase;margin:0;color:#151813}
+header .odin-brand h1 span{color:#81916f}
+header .top-tabs{justify-self:center;align-items:center;justify-content:center;gap:8px}
+header .top-tabs button{padding:12px 19px}
+header #health{justify-self:end}
+#overviewMetrics{gap:20px}
+.overview-metric{padding:24px;min-height:148px}
+.page-grid{gap:22px}
+.page-grid>.card{margin:0}
+.quick-links{gap:20px}
+.card{margin-bottom:2px}
+@media(max-width:1050px){header{grid-template-columns:1fr auto;gap:12px}header .top-tabs{grid-column:1/-1;grid-row:2;justify-self:center;width:100%;justify-content:center}header #health{grid-column:2;grid-row:1}}
+@media(max-width:650px){header .odin-brand h1{font-size:26px}header .top-tabs{justify-content:flex-start}#overviewMetrics{gap:12px}.page-grid{gap:14px}}
+
+/* Clear separation between dashboard sections and the relationship graph. */
+#overviewMetrics{margin-bottom:26px;gap:20px}
+#homeGraph{margin-top:26px!important;margin-bottom:30px!important}
+#homeGraph .card,#homeGraph>.card{margin:0!important}
+#dash>.card{margin-top:28px!important;margin-bottom:28px!important}
+#dash>.page-view{margin-top:26px!important;margin-bottom:30px!important}
+.page-view>.page-grid{row-gap:24px;column-gap:22px}
+.page-grid>.card{margin:0!important}
+#overviewMetrics+.card,#overviewMetrics~.card.full{margin-top:28px!important}
+#homeGraph+.card,#homeGraph~.card.full{margin-top:30px!important}
+.graph-shell{margin-bottom:4px}
+@media(max-width:650px){#overviewMetrics{margin-bottom:20px;gap:14px}#homeGraph{margin-top:22px!important;margin-bottom:24px!important}#dash>.card,#dash>.page-view{margin-top:22px!important;margin-bottom:24px!important}.page-view>.page-grid{row-gap:16px;column-gap:14px}}
+
+/* Large structural panels (graph and portfolio sections) stay neutral on hover.
+   Only the smaller modular cards inside them receive the charcoal hover treatment. */
+#dash>.card.full:hover,
+#dash>.page-view>.card.full:hover,
+.card.full:has(.graph-shell):hover,
+.card.full:has(#fr9Graph):hover{
+  color:#171b15!important;
+  background:#fff!important;
+  border-color:#e0e3da!important;
+  box-shadow:0 4px 18px rgba(30,36,25,.025)!important;
+  transform:none!important;
+}
+#dash>.card.full:hover h1,#dash>.card.full:hover h2,#dash>.card.full:hover h3,
+#dash>.card.full:hover h4,#dash>.card.full:hover p,#dash>.card.full:hover li,
+#dash>.card.full:hover small,#dash>.card.full:hover label,
+#dash>.card.full:hover .value,#dash>.card.full:hover .muted,
+#dash>.card.full:hover .label,#dash>.card.full:hover .hint,
+.card.full:has(.graph-shell):hover h1,.card.full:has(.graph-shell):hover h2,
+.card.full:has(.graph-shell):hover h3,.card.full:has(.graph-shell):hover p,
+.card.full:has(#fr9Graph):hover h1,.card.full:has(#fr9Graph):hover h2,
+.card.full:has(#fr9Graph):hover h3,.card.full:has(#fr9Graph):hover p{
+  color:#171b15!important;
+}
+#dash>.card.full:hover:before{opacity:0!important}
+#dash>.card.full:hover svg{filter:none!important}
+
+/* Hover belongs to leaf cards only. Section/panel wrappers never recolor,
+   including when the pointer is over an interactive card nested inside them. */
+.card.full:hover,
+.card.full:focus-within,
+.card.full:has(.card:hover),
+.card.full:has(.overview-metric:hover),
+.card.full:has(.metric:hover),
+.card.full:has(.agent:hover),
+.card.full:has(.evidence:hover),
+.card.full:has(.action:hover),
+.card.full:has(.milestone:hover),
+.card.full:has(.graph-shell):hover,
+.card.full:has(#fr9Graph):hover{
+  color:#171b15!important;
+  background:#fff!important;
+  border-color:#e0e3da!important;
+  box-shadow:0 4px 18px rgba(30,36,25,.025)!important;
+  transform:none!important;
+}
+.card.full:hover h1,.card.full:hover h2,.card.full:hover h3,.card.full:hover h4,
+.card.full:hover p,.card.full:hover li,.card.full:hover small,.card.full:hover label,
+.card.full:hover .value,.card.full:hover .muted,.card.full:hover .label,.card.full:hover .hint,
+.card.full:focus-within h1,.card.full:focus-within h2,.card.full:focus-within h3,
+.card.full:focus-within h4,.card.full:focus-within p,.card.full:focus-within small,
+.card.full:has(.card:hover) h1,.card.full:has(.card:hover) h2,
+.card.full:has(.card:hover) h3,.card.full:has(.card:hover) p,
+.card.full:has(.overview-metric:hover) h1,.card.full:has(.overview-metric:hover) h2,
+.card.full:has(.overview-metric:hover) h3,.card.full:has(.overview-metric:hover) p{
+  color:#171b15!important;
+}
+.card.full:hover:before,.card.full:focus-within:before{opacity:0!important}
+.card.full:hover svg,.card.full:focus-within svg{filter:none!important;opacity:1!important}
+/* A small card remains responsible for its own hover styling. */
+.card.full .card:hover,.card.full .overview-metric:hover,
+.card.full .metric:hover,.card.full .agent:hover,.card.full .evidence:hover,
+.card.full .action:hover,.card.full .milestone:hover{
+  color:#fff;
+  background:linear-gradient(125deg,#747873 0%,#555d5b 46%,#3f5153 100%);
+}
+
+/* Hover contrast fix: apply white typography to the contents of the small
+   interactive cards, without recolouring their enclosing section panels. */
+.card .card:hover,
+.card .overview-metric:hover,
+.card .metric:hover,
+.card .agent:hover,
+.card .evidence:hover,
+.card .action:hover,
+.card .milestone:hover,
+.page-grid > .card:not(.full):hover,
+.graph-edge-row:hover,
+.fr9-subcard:hover,
+.debate-column:hover,
+.draft-action:hover {
+  color:#fff!important;
+}
+.card .card:hover :is(h1,h2,h3,h4,h5,h6,p,span,b,strong,em,small,label,li,summary,dt,dd,blockquote,code,time),
+.card .overview-metric:hover :is(h1,h2,h3,h4,h5,h6,p,span,b,strong,em,small,label,li),
+.card .metric:hover :is(h1,h2,h3,h4,h5,h6,p,span,b,strong,em,small,label,li),
+.card .agent:hover :is(h1,h2,h3,h4,h5,h6,p,span,b,strong,em,small,label,li),
+.card .evidence:hover :is(h1,h2,h3,h4,h5,h6,p,span,b,strong,em,small,label,li,blockquote),
+.card .action:hover :is(h1,h2,h3,h4,h5,h6,p,span,b,strong,em,small,label,li),
+.card .milestone:hover :is(h1,h2,h3,h4,h5,h6,p,span,b,strong,em,small,label,li,time),
+.page-grid > .card:not(.full):hover :is(h1,h2,h3,h4,h5,h6,p,span,b,strong,em,small,label,li,summary,dt,dd,blockquote,code,time),
+.graph-edge-row:hover :is(b,span,small,p),
+.fr9-subcard:hover :is(h1,h2,h3,h4,h5,h6,p,span,b,strong,em,small,label,li),
+.debate-column:hover :is(h1,h2,h3,h4,h5,h6,p,span,b,strong,em,small,label,li),
+.draft-action:hover :is(h1,h2,h3,h4,h5,h6,p,span,b,strong,em,small,label,li) {
+  color:#fff!important;
+}
+.card .card:hover .tag,
+.card .agent:hover .tag,
+.card .evidence:hover .tag,
+.card .action:hover .tag,
+.card .milestone:hover .tag,
+.page-grid > .card:not(.full):hover .tag {
+  color:#fff!important;
+  background:rgba(255,255,255,.16)!important;
+  border-color:rgba(255,255,255,.28)!important;
+}
+.card .card:hover a,
+.card .agent:hover a,
+.card .evidence:hover a,
+.card .action:hover a,
+.card .milestone:hover a,
+.page-grid > .card:not(.full):hover a {
+  color:#fff!important;
+}
+.card .card:hover svg,
+.card .agent:hover svg,
+.card .evidence:hover svg,
+.card .action:hover svg,
+.card .milestone:hover svg,
+.page-grid > .card:not(.full):hover svg {
+  filter:brightness(0) invert(1);
+}
+
+
+/* Final contrast override for nested metric cards: include div-based values
+   and every text-bearing descendant (e.g. the "Not calculated" value). */
+.card.full .agent:hover *,
+.card.full .card:hover *,
+.card.full .overview-metric:hover *,
+.card.full .metric:hover *,
+.card.full .evidence:hover *,
+.card.full .action:hover *,
+.card.full .milestone:hover *,
+.page-grid > .card:not(.full):hover * {
+  color:#fff!important;
+}
+.card.full .agent:hover button,
+.card.full .card:hover button,
+.card.full .overview-metric:hover button,
+.card.full .metric:hover button,
+.card.full .evidence:hover button,
+.card.full .action:hover button,
+.card.full .milestone:hover button,
+.page-grid > .card:not(.full):hover button {
+  color:#171b15!important;
+}
+
+
+/* FR1.1 contract intake: proper responsive form layout */
+#customPortfolioInput{overflow:hidden}
+#customPortfolioInput .fr9-title{align-items:flex-start;gap:24px;margin-bottom:22px}
+#customPortfolioInput .fr9-title>div{min-width:0}
+#customPortfolioInput .fr9-title h3{font-size:24px;line-height:1.2;margin:8px 0 10px}
+#customPortfolioInput .fr9-title p{max-width:760px;margin:0}
+#customPortfolioInput .form-grid{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(260px,.88fr) minmax(0,1fr);
+  gap:20px;
+  align-items:start;
+  margin:24px 0 20px;
+}
+#customPortfolioInput .form-grid>label{
+  display:flex;flex-direction:column;align-items:stretch;gap:9px;
+  min-width:0;font-size:13px;font-weight:650;color:#4f554a;
+}
+#customPortfolioInput textarea{
+  display:block;width:100%;min-width:0;box-sizing:border-box;
+  min-height:132px;resize:vertical;padding:14px 15px;
+  border:1px solid #d9ddd1;border-radius:13px;background:#fafbf8;
+  color:#242820;font:13px/1.6 system-ui,sans-serif;
+}
+#customPortfolioInput textarea:focus,
+#customPortfolioInput input:focus{outline:3px solid #dce7d0;border-color:#879879}
+#customPortfolioInput input[type=file]{
+  display:block;width:100%;min-width:0;box-sizing:border-box;
+  min-height:132px;padding:18px 14px;border:1px dashed #bfc7b5;
+  border-radius:13px;background:#fafbf8;color:#555d50;
+  font:13px/1.5 system-ui,sans-serif;
+}
+#customPortfolioInput input[type=file]::file-selector-button{
+  display:block;margin:0 0 12px;padding:10px 14px;
+  border:1px solid #d4d9cd;border-radius:999px;background:#fff;
+  color:#20251d;font-weight:650;cursor:pointer;
+}
+#customPortfolioInput .controls{
+  display:flex;align-items:center;justify-content:flex-start;flex-wrap:wrap;
+  gap:12px;margin:0 0 18px;padding:16px;background:#f5f6f0;
+  border:1px solid #e4e6dd;border-radius:15px;
+}
+#customPortfolioInput .controls label{font-size:13px;font-weight:650;color:#4f554a}
+#customPortfolioInput .controls input[type=date]{min-height:42px}
+#customAnalyzeButton{min-height:42px;padding:0 20px;background:#151813;color:#fff;border-color:#151813;font-weight:700}
+#customPortfolioInput>.small{font-size:12px;line-height:1.65;margin:12px 0;color:#747a6d}
+#customPortfolioStatus{padding:12px 14px;background:#f7f8f3;border:1px solid #e5e7df;border-radius:12px}
+#customPortfolioResults{min-width:0}
+@media(max-width:900px){
+  #customPortfolioInput .form-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #customPortfolioInput .form-grid>label:first-child{grid-column:1/-1}
+}
+@media(max-width:560px){
+  #customPortfolioInput .form-grid{grid-template-columns:minmax(0,1fr);gap:15px}
+  #customPortfolioInput .form-grid>label:first-child{grid-column:auto}
+  #customPortfolioInput .fr9-title{flex-direction:column}
+  #customPortfolioInput input[type=file],#customPortfolioInput textarea{min-height:110px}
+  #customPortfolioInput .controls{align-items:stretch}
+}
+
+
+/* Keep contract source-term evidence readable while the parent card is focused/open. */
+.contract-explorer-card details[open] .evidence,
+.contract-explorer-card details[open] .evidence blockquote,
+.contract-explorer-card details[open] .evidence .meta,
+.contract-explorer-card details[open] .evidence p,
+.contract-explorer-card details[open] .evidence b{
+  color:#252a22!important;
+}
+.contract-explorer-card details[open] .evidence{
+  background:linear-gradient(145deg,#fbfcf8,#f0f3eb)!important;
+  border:1px solid #dce2d5!important;
+  border-radius:14px;
+  padding:16px;
+  margin:12px 0;
+  box-shadow:0 4px 14px rgba(30,36,25,.045);
+}
+.contract-explorer-card details[open] .evidence blockquote{
+  margin:10px 0;
+  padding:10px 12px;
+  background:#fff;
+  border-left:3px solid #8a9a78;
+  border-radius:0 8px 8px 0;
+  line-height:1.65;
+  overflow-wrap:anywhere;
+}
+.contract-explorer-card details[open] .evidence:hover{
+  background:linear-gradient(125deg,#747873 0%,#555d5b 46%,#3f5153 100%)!important;
+  border-color:#6d7770!important;
+}
+.contract-explorer-card details[open] .evidence:hover,
+.contract-explorer-card details[open] .evidence:hover *{
+  color:#fff!important;
+}
+.contract-explorer-card details[open] summary{
+  color:#657653!important;
+  padding:10px 12px;
+  background:#f4f6ef;
+  border:1px solid #e0e5d8;
+  border-radius:10px;
+  line-height:1.5;
+}
+.contract-explorer-card details[open] summary:hover{
+  background:#eaf0e2;
+}
+
+
+/* Final contract explorer contrast correction:
+   the contract tile itself stays neutral; only individual source-term evidence cards
+   receive the dark hover state. This prevents inherited white text on white evidence. */
+.contract-explorer-card.agent,
+.contract-explorer-card.agent:hover,
+.contract-explorer-card.agent:focus-within{
+  color:#171b15!important;
+  background:#fff!important;
+  border-color:#e0e3da!important;
+  box-shadow:0 4px 18px rgba(30,36,25,.025)!important;
+  transform:none!important;
+}
+.contract-explorer-card.agent:hover > b,
+.contract-explorer-card.agent:hover > p,
+.contract-explorer-card.agent:hover > .small,
+.contract-explorer-card.agent:hover > details > summary,
+.contract-explorer-card.agent:focus-within > b,
+.contract-explorer-card.agent:focus-within > p,
+.contract-explorer-card.agent:focus-within > .small,
+.contract-explorer-card.agent:focus-within > details > summary{
+  color:#171b15!important;
+}
+.contract-explorer-card details[open] .evidence,
+.contract-explorer-card details[open] .evidence:not(:hover){
+  color:#252a22!important;
+  background:linear-gradient(145deg,#fbfcf8,#f0f3eb)!important;
+  border-color:#dce2d5!important;
+}
+.contract-explorer-card details[open] .evidence:not(:hover) :is(b,strong,p,small,.meta,blockquote,span,li){
+  color:#252a22!important;
+}
+.contract-explorer-card details[open] .evidence:hover{
+  color:#fff!important;
+  background:linear-gradient(125deg,#747873 0%,#555d5b 46%,#3f5153 100%)!important;
+  border-color:#6d7770!important;
+  transform:translateY(-2px);
+}
+.contract-explorer-card details[open] .evidence:hover :is(b,strong,p,small,.meta,blockquote,span,li){
+  color:#fff!important;
+}
+.contract-explorer-card details[open] .evidence:hover blockquote{
+  background:rgba(255,255,255,.12)!important;
+  border-left-color:#dce8d0!important;
+}
+.contract-explorer-card details > summary{
+  color:#657653!important;
+  background:#f4f6ef!important;
+}
+.contract-explorer-card details > summary:hover{
+  color:#34402b!important;
+  background:#eaf0e2!important;
+}
+
+
+/* Hard override for nested contract evidence: readable at rest, white only on the evidence card hover. */
+#contractExplorer .contract-explorer-card,
+#contractExplorer .contract-explorer-card:hover,
+#contractExplorer .contract-explorer-card:focus,
+#contractExplorer .contract-explorer-card:focus-within {
+  color:#171b15!important;
+  background:#fff!important;
+  border-color:#e0e3da!important;
+  box-shadow:0 4px 18px rgba(30,36,25,.025)!important;
+  transform:none!important;
+}
+#contractExplorer .contract-explorer-card > b,
+#contractExplorer .contract-explorer-card > p,
+#contractExplorer .contract-explorer-card > .flow,
+#contractExplorer .contract-explorer-card > details,
+#contractExplorer .contract-explorer-card > details > p,
+#contractExplorer .contract-explorer-card > details > summary,
+#contractExplorer .contract-explorer-card > details > summary:focus,
+#contractExplorer .contract-explorer-card > details > summary:focus-visible {
+  color:#252a22!important;
+}
+#contractExplorer .contract-explorer-card > details > summary {
+  background:#f4f6ef!important;
+  border:1px solid #e0e5d8!important;
+  border-radius:10px!important;
+  padding:10px 12px!important;
+  outline-offset:2px;
+}
+#contractExplorer .contract-explorer-card > details > summary:hover {
+  color:#34402b!important;
+  background:#eaf0e2!important;
+}
+#contractExplorer .contract-explorer-card details[open] .evidence,
+#contractExplorer .contract-explorer-card details[open] .evidence * {
+  color:#252a22!important;
+}
+#contractExplorer .contract-explorer-card details[open] .evidence {
+  background:linear-gradient(145deg,#fbfcf8,#f0f3eb)!important;
+  border:1px solid #dce2d5!important;
+  box-shadow:0 4px 14px rgba(30,36,25,.045)!important;
+  transform:none!important;
+}
+#contractExplorer .contract-explorer-card details[open] .evidence:hover,
+#contractExplorer .contract-explorer-card details[open] .evidence:hover * {
+  color:#fff!important;
+}
+#contractExplorer .contract-explorer-card details[open] .evidence:hover {
+  background:linear-gradient(125deg,#747873 0%,#555d5b 46%,#3f5153 100%)!important;
+  border-color:#6d7770!important;
+  box-shadow:0 12px 25px rgba(35,42,34,.14)!important;
+  transform:translateY(-2px)!important;
+}
+#contractExplorer .contract-explorer-card details[open] .evidence blockquote {
+  color:#252a22!important;
+  background:#fff!important;
+}
+#contractExplorer .contract-explorer-card details[open] .evidence:hover blockquote {
+  color:#fff!important;
+  background:rgba(255,255,255,.12)!important;
+  border-left-color:#dce8d0!important;
+}
+
+
+/* Contract page evidence readability fix: keep nested source cards readable at rest and hover.
+   Covers Contract explorer, multi-contract workstreams, and Thor portfolio scan. */
+.page-view[data-view="contracts"] .card:has(.agent:hover),
+.page-view[data-view="contracts"] .card:has(.evidence:hover),
+.page-view[data-view="contracts"] .card.full:has(.agent:hover),
+.page-view[data-view="contracts"] .card.full:has(.evidence:hover) {
+  color:#20251d!important;background:#fff!important;border-color:#e0e3da!important;
+  box-shadow:0 8px 24px rgba(30,36,25,.04)!important;
+}
+.page-view[data-view="contracts"] .agentlist .agent,
+.page-view[data-view="contracts"] .agentlist .evidence,
+.page-view[data-view="contracts"] .agentlist .agent:hover,
+.page-view[data-view="contracts"] .agentlist .evidence:hover {
+  color:#20251d!important;background:#fbfcf8!important;border:1px solid #dfe4d8!important;
+  box-shadow:0 4px 14px rgba(30,36,25,.045)!important;transform:none!important;
+}
+.page-view[data-view="contracts"] .agentlist .agent *,
+.page-view[data-view="contracts"] .agentlist .evidence *,
+.page-view[data-view="contracts"] .agentlist .agent:hover *,
+.page-view[data-view="contracts"] .agentlist .evidence:hover * {color:#20251d!important}
+.page-view[data-view="contracts"] .agentlist .agent blockquote,
+.page-view[data-view="contracts"] .agentlist .evidence blockquote,
+.page-view[data-view="contracts"] .agentlist .agent:hover blockquote,
+.page-view[data-view="contracts"] .agentlist .evidence:hover blockquote {
+  color:#20251d!important;background:#fff!important;border-left:3px solid #8a9a78!important;
+  border-radius:0 8px 8px 0!important;padding:10px 12px!important;line-height:1.7!important;
+  overflow-wrap:anywhere!important;white-space:pre-wrap!important;
+}
+.page-view[data-view="contracts"] .agentlist details>summary {
+  color:#596b49!important;background:#f4f6ef!important;border-radius:9px!important;padding:9px 11px!important;
+}
+.page-view[data-view="contracts"] .agentlist details>summary:hover {color:#34402b!important;background:#eaf0e2!important}
+.page-view[data-view="contracts"] .agentlist .agent p,
+.page-view[data-view="contracts"] .agentlist .evidence p {font-size:13px!important;line-height:1.7!important;overflow-wrap:anywhere}
+.page-view[data-view="contracts"] .agentlist .meta,
+.page-view[data-view="contracts"] .agentlist .small {color:#687163!important;font-size:12px!important;line-height:1.6!important}
+@media(max-width:650px) {
+  .page-view[data-view="contracts"] .agentlist {grid-template-columns:minmax(0,1fr)!important}
+  .page-view[data-view="contracts"] .agentlist .agent,
+  .page-view[data-view="contracts"] .agentlist .evidence {min-width:0;padding:14px!important}
+}
+
+
+/* Odin hero and executive command-center refresh */
+:root{--ink:#f6f5fb;--muted:#a4a2b5;--line:#29283a;--panel:#12121c;--accent:#b8a6ff;--mint:#9cf5df}
+body{background:#08080d;color:var(--ink);font-family:Poppins,Inter,system-ui,sans-serif}
+body:has(#odinHero:not(.hidden)){padding:0;background:#08080d}
+#odinHero{position:relative;min-height:100svh;overflow:hidden;isolation:isolate;padding:26px clamp(22px,5vw,78px) 40px;display:flex;flex-direction:column;background:#08080d;color:#fff}
+#odinHero:before{content:"";position:absolute;inset:0;z-index:-2;background:linear-gradient(180deg,rgba(8,8,13,.36),rgba(8,8,13,.26) 42%,#08080d 100%),url('https://d2ol7oe51mr4n9.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/f1631235-0a76-464d-8f1d-2c4b48a997d5.jpg') center 52%/cover no-repeat;opacity:.82}
+#odinHero:after{content:"";position:absolute;z-index:-1;left:-12%;right:-12%;bottom:-37%;height:94%;border-radius:50% 50% 0 0;background:radial-gradient(ellipse at 50% 8%,rgba(238,82,155,.2),transparent 26%),radial-gradient(ellipse at 38% 14%,rgba(77,108,255,.23),transparent 32%),linear-gradient(180deg,transparent,#08080d 75%);pointer-events:none}
+.hero-nav{display:flex;align-items:center;justify-content:space-between;gap:22px;z-index:1}
+.hero-brand{display:flex;gap:12px;align-items:center;font-size:23px;font-weight:700;letter-spacing:-.8px}.hero-mark{font-size:28px;color:#b9a6ff;font-weight:300;letter-spacing:-7px;margin-right:6px}
+.hero-links{display:flex;gap:22px;align-items:center;color:#d5d3e1;font-size:13px}.hero-links a{color:inherit;text-decoration:none}.hero-links a:first-child{color:white}.hero-actions{display:flex;gap:9px;align-items:center}.hero-actions button,.hero-cta{border-radius:999px;padding:12px 21px;font-size:13px;font-weight:600;cursor:pointer}
+.hero-ghost{background:#ffffff0c;border:1px solid #ffffff38;color:#fff}.hero-white{background:#fff!important;color:#11111a!important;border:1px solid #fff!important}
+.hero-center{margin:auto;max-width:1000px;text-align:center;padding:72px 0 65px;z-index:1}.hero-badge{display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border:1px solid #ffffff27;background:#ffffff0b;border-radius:999px;color:#e8e4fb;font-size:12px;backdrop-filter:blur(15px);animation:heroRise .8s .12s both}
+.hero-headline{font-family:Inter,system-ui,sans-serif;font-size:clamp(40px,6.3vw,82px);font-weight:300;letter-spacing:-.065em;line-height:1.04;margin:27px 0 20px;animation:heroRise .9s .23s both}.hero-headline span{background:linear-gradient(92deg,#fff 4%,#f6b9e1 32%,#c1afff 66%,#fff 96%);color:transparent;background-clip:text;-webkit-background-clip:text}
+.hero-copy{font-size:clamp(14px,1.35vw,17px);line-height:1.8;color:#c0bdcf;max-width:680px;margin:0 auto 27px;animation:heroRise .8s .4s both}.hero-cta{display:inline-flex;gap:12px;align-items:center;text-decoration:none;animation:heroRise .8s .52s both}.hero-note{color:#8e8b9f;font-size:11px;margin-top:17px;animation:heroRise .8s .68s both}.hero-chip{position:absolute;z-index:1;width:44px;height:44px;border:1px solid #ffffff25;border-radius:50%;display:grid;place-items:center;background:linear-gradient(145deg,#ffffff20,#ffffff04);box-shadow:0 0 36px #bfaeff20;backdrop-filter:blur(9px);font-size:17px;color:#f5f0ff;animation:chipFloat 6s ease-in-out infinite}
+.hero-chip.c1{left:10%;top:35%;animation-delay:-1s}.hero-chip.c2{right:13%;top:31%;animation-delay:-3s}.hero-chip.c3{right:8%;bottom:23%;animation-delay:-2s}.hero-chip.c4{left:17%;bottom:20%;animation-delay:-4s}
+.hero-scroll{position:absolute;bottom:25px;left:50%;transform:translateX(-50%);font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:#868398;display:flex;align-items:center;gap:10px;z-index:2}.hero-scroll span{width:18px;height:27px;border:1px solid #68647c;border-radius:999px;position:relative}.hero-scroll span:after{content:"";position:absolute;width:3px;height:5px;border-radius:3px;background:#c0b5ff;top:5px;left:7px}
+@keyframes heroRise{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}@keyframes chipFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+body:has(#odinHero:not(.hidden))>header,body:has(#odinHero:not(.hidden))>main,body:has(#odinHero:not(.hidden))>.footer{display:none!important}
+#odinAppShell.hidden{display:none!important}
+#odinAppShell{min-height:100vh;background:#0a0a10;color:#f5f4fb}
+#odinAppShell header{margin:0;padding:16px clamp(16px,3vw,44px);background:#0d0d14ed;border-bottom:1px solid #292837;color:#f6f5fb;grid-template-columns:minmax(140px,1fr) auto auto}
+#odinAppShell header h1{font-size:24px;letter-spacing:-1px}#odinAppShell header h1 span{color:#b8a6ff}
+#odinAppShell .top-tabs a{color:#b7b4c8;border-color:#343246;padding:11px 16px}#odinAppShell .top-tabs a.active{background:#b8a6ff;border-color:#b8a6ff;color:#101018}
+#odinAppShell .top-tabs a:hover{background:#1b1a2a;color:#fff;border-color:#625a82}
+#odinAppShell main{max-width:1600px;padding:25px clamp(14px,2.4vw,40px)}
+#odinAppShell .intro{align-items:center;padding:12px 0 20px}
+#odinAppShell .eyebrow{color:#b8a6ff}#odinAppShell h2{font-weight:600;letter-spacing:-1.4px}#odinAppShell h2 span{color:#b8a6ff!important}
+#odinAppShell p,#odinAppShell .muted{color:#a5a2b8}
+#odinAppShell .card{background:linear-gradient(145deg,#151520,#101018);border:1px solid #29283a;box-shadow:0 12px 36px #0003;color:#f4f2fb;border-radius:18px}
+#odinAppShell .agent,#odinAppShell .evidence,#odinAppShell .action,#odinAppShell .milestone,#odinAppShell .step,#odinAppShell .flow .step{background:#1a1a27;border-color:#302f44;color:#edebf6}
+#odinAppShell .value{color:#faf9ff}#odinAppShell .label,#odinAppShell .meta,#odinAppShell .small{color:#a6a3b9}
+#odinAppShell button{background:#1d1c2b;color:#eeeaff;border:1px solid #39374f}#odinAppShell button#run,#odinAppShell button.primary{background:#b8a6ff;color:#12111b;border-color:#b8a6ff}
+#odinAppShell input,#odinAppShell select,#odinAppShell textarea{background:#101019;color:#f8f6ff;border-color:#39374c}
+#odinAppShell .tag{background:#242337;color:#c5c0dd}
+#odinAppShell .notice{background:#332618;border-color:#735830;color:#f0cc8f}
+#odinAppShell .err{background:#3a1f2a;color:#ffcad4}
+#odinAppShell .fr9-graph-shell,#odinAppShell .fr9-subcard{background:#101019;border-color:#302f43}
+#odinAppShell .footer{color:#77748b}
+#odinAppShell .esign-panel{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(260px,.7fr);gap:16px}
+#odinAppShell .esign-paper{min-height:280px;padding:26px;background:#faf9f6;color:#272631;border-radius:12px;font-family:Georgia,serif;box-shadow:0 12px 30px #0004}
+#odinAppShell .esign-paper h4{font-size:23px;color:#272631;margin:0 0 18px}
+#odinAppShell .esign-paper p{color:#5b5962;font-size:13px;line-height:1.85}
+#odinAppShell .signature-line{border-bottom:1px solid #aaa6b6;min-width:150px;display:inline-block;margin:18px 8px 3px 0}
+#odinAppShell .esign-badge{border:1px solid #39364d;border-radius:12px;padding:14px;background:#1b1a28;margin:10px 0}
+#odinAppShell .status-pill{display:inline-flex;border-radius:999px;padding:5px 9px;font-size:11px;background:#27243b;color:#c8bdff}
+#odinAppShell .agent-button{display:flex;gap:12px;align-items:center;text-align:left;width:100%;background:#181725!important;border:1px solid #333149!important;border-radius:14px;padding:13px;margin-bottom:9px}
+#odinAppShell .agent-glyph{width:36px;height:36px;border-radius:12px;background:linear-gradient(135deg,#aa9aff,#f3a7dc);display:grid;place-items:center;color:#171522;font-weight:800}
+#odinAppShell .agent-button[aria-pressed=true]{border-color:#b8a6ff!important;background:#252238!important}
+#odinAppShell .hero-callout{border:1px solid #343149;background:#171622;border-radius:14px;padding:16px;color:#e7e3f7}
+#odinAppShell .deadline-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px}
+#odinAppShell .day-cell{border:1px solid #2d2b40;border-radius:9px;min-height:80px;padding:8px;font-size:11px;background:#12121b;cursor:pointer}
+#odinAppShell .day-cell strong{display:block;color:#b8a6ff;font-size:13px;margin-bottom:5px}
+#odinAppShell .day-cell .day-event{margin-top:5px;border-radius:5px;padding:4px;background:#34253a;color:#f0bedc;line-height:1.3;overflow-wrap:anywhere}
+#odinAppShell .scenario-choice{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+#odinAppShell .scenario-choice button[aria-pressed=true]{background:#b8a6ff;color:#12111b;border-color:#b8a6ff}
+#odinAppShell .scenario-output{border-left:3px solid #b8a6ff;background:#181725;padding:16px;border-radius:0 12px 12px 0;line-height:1.7}
+#odinAppShell .new-panels{grid-column:1/-1}
+@media(max-width:900px){.hero-links{display:none}#odinAppShell header{grid-template-columns:1fr auto}#odinAppShell .top-tabs{grid-column:1/-1;grid-row:2;overflow:auto;flex-wrap:nowrap}#odinAppShell .esign-panel{grid-template-columns:1fr}#odinAppShell .deadline-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:560px){#odinHero{padding:20px 18px 36px}#odinHero:before{background-position:52% center;opacity:.56}.hero-actions .hero-ghost{display:none}.hero-center{padding:56px 0 66px}.hero-headline{font-size:clamp(39px,12vw,58px)}.hero-chip{width:36px;height:36px}.hero-chip.c1{left:6%;top:25%}.hero-chip.c2{right:7%;top:23%}.hero-chip.c3{right:7%;bottom:17%}.hero-chip.c4{left:7%;bottom:15%}#odinAppShell main{padding:18px 12px}#odinAppShell .deadline-grid{grid-template-columns:repeat(2,minmax(0,1fr))}#odinAppShell .grid{gap:10px}}
+@media(prefers-reduced-motion:reduce){#odinHero *{animation:none!important;transition:none!important}#odinHero:before{background-image:linear-gradient(180deg,rgba(8,8,13,.25),#08080d 100%),url('https://d2ol7oe51mr4n9.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/f1631235-0a76-464d-8f1d-2c4b48a997d5.jpg')!important}}
+
+</style></head><body>
+<section id="odinHero" aria-label="Odin contract intelligence welcome">
+  <nav class="hero-nav" aria-label="Main navigation">
+    <div class="hero-brand"><span class="hero-mark">//</span> Odin<span style="color:#b7a4ff">.</span></div>
+    <div class="hero-links"><a href="#home">Home</a><a href="#capabilities" data-hero-target="contracts">Contracts</a><a href="#agents" data-hero-target="agents">Agents</a><a href="#timeline" data-hero-target="timeline">Deadlines</a><a href="#business" data-hero-target="review">For business</a><a href="#audit" data-hero-target="audit">Audit</a></div>
+    <div class="hero-actions"><button type="button" class="hero-ghost" data-enter-odin>Log In</button><button type="button" class="hero-white" data-enter-odin>Open workspace ↗</button></div>
+  </nav>
+  <div class="hero-chip c1" aria-hidden="true">₿</div><div class="hero-chip c2" aria-hidden="true">⌘</div><div class="hero-chip c3" aria-hidden="true">§</div><div class="hero-chip c4" aria-hidden="true">✦</div>
+  <div class="hero-center"><div class="hero-badge">✦ &nbsp; Multi-agent contract intelligence</div>
+    <h1 class="hero-headline"><span>Manage Contracts in a<br>Fast, Controlled &amp;<br>Collaborative Way</span></h1>
+    <p class="hero-copy">Bring every agreement, obligation, deadline, and review into one coordinated workspace. Let specialized agents surface evidence and options—while people keep control of every legal decision.</p>
+    <button type="button" class="hero-cta hero-white" data-enter-odin>Get Started <span>→</span></button>
+    <div class="hero-note">Evidence-linked. Deadline-aware. Human-approved.</div>
+  </div><div class="hero-scroll"><span></span> Scroll to explore</div>
+</section>
+<div id="odinAppShell" class="hidden">
+
+<header><div class="odin-brand"><h1>odin<span>.</span></h1></div><nav class="top-tabs" aria-label="Dashboard pages"><button type="button" class="active" data-page="overview">Overview</button><button type="button" data-page="contracts">Contracts</button><button type="button" data-page="timeline">Time machine</button><button type="button" data-page="agents">Agents</button><button type="button" data-page="review">Risk &amp; review</button><button type="button" data-page="audit">Audit</button></nav><span class="tag" id="health">Connecting…</span></header>
+<main><div class="intro"><div><div class="eyebrow">Contract intelligence · command center</div><h2>Manage contracts.<br><span style="color:var(--cyan)">Keep every promise.</span></h2><p>Evidence, deadlines, agent findings, and approval-ready actions in one controlled workspace.</p></div><div class="controls"><label for="date">Simulated date</label> <select id="date"><option>2027-01-15</option><option selected>2027-03-15</option><option>2027-06-01</option><option>2027-09-15</option></select> <button id="run" onclick="runOdin()">Run agents ↗</button></div></div>
+<div id="error" class="err hidden"></div><div id="loading" class="card">Loading agent state…</div>
+<div id="dash" class="grid hidden">
+<div class="card full" id="customPortfolioInput"><div class="fr9-title"><div><div class="eyebrow">FR1.1 · CONFIGURABLE PORTFOLIO INPUT</div><h3>Analyze your contract set</h3><p class="muted">Provide company context and upload multiple text contracts. Odin keeps source quotes and flags heuristic results for review.</p></div><span class="tag">TXT · up to 15 MB combined</span></div><div class="form-grid"><label>Company context<textarea id="customCompanyContext" rows="3" placeholder="Company, business context, key counterparties, and what you want monitored…">Quillhub Inc. manages vendor contracts, renewal windows, payments, and service obligations.</textarea></label><label>Contract files (.txt)<input id="customContractFiles" type="file" accept=".txt,text/plain" multiple></label><label>Optional event records (JSON array)<textarea id="customEvents" rows="3" placeholder='[{"event_id":"E-1","timestamp":"2027-03-01","body":"VENDOR_A invoice paid"}]'></textarea></label><label>Optional payment ledger (JSON array)<textarea id="customPaymentLedger" rows="3" placeholder='[{"date":"2027-03-01","contract_id":"VENDOR_A","reference":"Invoice INV-42","amount":"1200.00","currency":"USD","status":"paid"}]'></textarea></label></div><div class="controls"><label for="customAsOf">Analysis date</label><input id="customAsOf" type="date" value="2027-03-15"><label class="small" style="display:flex;align-items:center;gap:8px"><input id="customUseClaude" type="checkbox"> Enable Claude review (requires configured ANTHROPIC_API_KEY; may incur provider costs)</label><button type="button" id="customAnalyzeButton">Analyze portfolio ↗</button><button type="button" id="customIngestEvents">Store event feed</button></div><p class="small">The default workflow is deterministic and bounded. Optional Claude review is used only when enabled and configured; all model-proposed quotations are checked against source text. No unsupported financial exposure is calculated. TXT only; scanned PDFs require OCR.</p><div id="customPortfolioStatus" class="small" role="status">Select at least one contract text file to begin.</div><div id="customPortfolioResults"></div></div>
+<div class="card full" id="fr8Synthesis"><div class="fr9-title"><div><div class="eyebrow">FR8 · SYNTHESIS</div><h3>Contract reports &amp; company risk report</h3><p class="muted">Per-contract terms, obligations, timelines, risks, citations and actions, combined into a company-wide view.</p></div><span class="tag" id="fr8SynthesisStatus">Waiting for analysis</span></div><div id="fr8CompanyReport" class="fr9-section"><p class="small">Run agents to generate the synthesis.</p></div><div id="fr8ContractReports" class="fr9-section"></div></div>
+<div class="card full fr9-panel" id="fr9Dashboard"><div class="fr9-title"><div><div class="eyebrow">FR9 · DASHBOARD CONTROL SURFACE</div><h3>Contract intelligence cockpit</h3><p class="muted">Interactive relationships, simulated time, exposure, debate, and human-review actions.</p></div><span class="tag" id="fr9RunState">Waiting for analysis</span></div>
+<section class="fr9-section"><div class="fr9-section-head"><div><h4>FR9.2 · Time machine</h4><p>Move the simulated clock to rerun deadline and risk analysis for that date.</p></div><b id="fr9TimeValue">2027-03-15</b></div><input id="fr9TimeSlider" type="range" min="0" max="100" step="1" value="25" aria-label="Simulated date slider"><div class="fr9-scale"><span>15 Jan 2027</span><span>15 Sep 2027</span></div><div class="fr9-time-status" id="fr9TimeStatus">Choose a date to refresh the analysis.</div></section>
+<section class="fr9-section"><div class="fr9-section-head"><div><h4>FR9.1 · Contract, clause &amp; party graph</h4><p>Drag to rotate; scroll to zoom. Green edges indicate relationships; muted red edges indicate conflicts where classified.</p></div><span class="tag">Evidence-backed</span></div><div class="fr9-graph-shell" id="fr9Graph"><canvas class="fr9-graph-canvas hidden"></canvas><div class="fr9-graph-empty">Run analysis to build the relationship graph from returned nodes and sourced edges.</div></div><div class="fr9-graph-legend" id="fr9GraphLegend"></div><div id="fr9GraphDetails" class="small">Select a node to inspect its relationships.</div><div class="fr9-edge-list" id="fr9GraphEdges"></div></section>
+<section class="fr9-section"><div class="fr9-section-head"><div><h4>FR9.3 · Exposure &amp; risk map</h4><p>Financial exposure is displayed only when supported by backend calculations. Heatmap cells show matching risk signals, not monetary penalties.</p></div><span class="tag">No invented totals</span></div><div class="fr9-exposure-grid"><div class="fr9-subcard"><h5>Financial exposure gauge</h5><div id="fr9ExposureGauge"></div></div><div class="fr9-subcard"><h5>Risk heatmap · contract / clause type × month</h5><label class="small" for="fr9HeatmapMode">Rows grouped by </label><select id="fr9HeatmapMode"><option value="contract">Contract</option><option value="clause">Clause / risk type</option></select><div class="heat-months"><span>Contract</span><span>Jan</span><span>Feb</span><span>Mar</span><span>Apr</span><span>May</span><span>Jun</span><span>Jul</span><span>Aug</span><span>Sep</span></div><div id="fr9Heatmap"></div><div class="small">Clause-type risk breakdown appears when clause categories are returned by the analysis.</div></div></div></section>
+<section class="fr9-section"><div class="fr9-section-head"><div><h4>FR9.4 · Agent debate panel</h4><p>Inspect Loki’s challenge, Heimdall’s verification, and Tyr’s ruling for the current run.</p></div></div><div class="fr9-debate" id="fr9Debate"><p class="small">Run analysis to populate the agent debate.</p></div></section>
+<section class="fr9-section"><div class="fr9-section-head"><div><h4>FR9.5 · Alerts &amp; drafted actions</h4><p>Prioritized decision-queue items and draft notices with clause citations. Human approval is required.</p></div><span class="tag">Draft only</span></div><div class="fr9-alert-action"><div><h5>Priority alert feed</h5><div id="fr9Alerts"></div></div><div><h5>Draft notice &amp; citations</h5><div id="fr9Actions"></div></div></div></section></div>
+<div class="card full"><h3>Phase 6 · Portfolio command center <span class="tag" id="portfolioStatus">Awaiting run</span></h3><p class="muted">Portfolio metrics are computed from the current run's loaded contracts, workstreams, timeline, findings, and reconciliation candidates. Unknown exposure remains explicitly uncalculated.</p><div class="agentlist" id="portfolioOverview"></div></div>
+<div class="card full"><h3>Contract explorer <span class="tag" id="explorerCount">Loading</span></h3><p class="muted">Select a contract to jump to its workstream, extracted terms, relationship evidence, and amendment review. Counts reflect available source data, not a legal completeness guarantee.</p><div class="agentlist" id="contractExplorer"></div></div>
+<div class="card full"><h3>Portfolio risk heatmap <span class="tag" id="heatmapStatus">Awaiting run</span></h3><p class="muted">Risk signals are triage candidates. Severity is shown only when provided by the source analysis; unverified evidence and open questions remain visible.</p><div id="riskHeatmap" class="agentlist"></div></div>
+<div class="card full"><h3>Event and audit timeline <span class="tag" id="auditTimelineCount">Awaiting run</span></h3><p class="muted">Combines dated portfolio milestones with agent messages and the current finding/verification outcome. It is a run-level audit view, not a persistent cross-run history.</p><div id="eventAuditTimeline" class="milestones"></div></div>
+<div class="card metric"><div class="label">Workstreams</div><div class="value" id="workstreamMetric">—</div><div class="label">Five contract streams + portfolio review</div></div><div class="card metric"><div class="label">Citations verified</div><div class="value" id="citeMetric">—</div><div class="label">Exact quote validation</div></div><div class="card metric"><div class="label">Risk posture</div><div class="value" style="color:var(--gold)" id="riskMetric">—</div><div class="label">Not a breach verdict</div></div><div class="card metric"><div class="label">Draft actions</div><div class="value">01</div><div class="label">Human approval required</div></div>
+<div class="card full"><h3>Agent operations <span class="tag">Observable state machine</span></h3><div class="agentlist" id="agents"></div><div class="flow" id="flow"></div></div>
+<div class="card full"><h3>Odin · multi-contract workstreams <span class="tag" id="workstreamCount">Loading</span></h3><p class="muted">Each contract is analyzed against its own source text. Portfolio-level signals are potential conflicts for human review, not legal conclusions.</p><div id="workstreamCards" class="agentlist"></div></div><div class="card full"><h3>Thor · extracted terms <span class="tag">Canonical source citations</span></h3><div id="terms" class="agentlist"></div></div><div class="card wide"><h3>Evidence-backed risk <span class="tag" id="riskBadge">Review</span></h3><div class="risk" id="riskTitle"></div><p id="claim"></p><div class="eyebrow">Loki's attack path</div><ol id="attack"></ol><div class="eyebrow">Heimdall verification</div><p id="verify"></p><div id="citation"></div></div>
+<div class="card side"><h3>Tyr's ruling</h3><div class="decision"><div class="eyebrow">Decision</div><h3 id="decision"></h3><p id="rationale"></p></div><div class="notice">Evidence triage prototype, not legal advice. No action is sent automatically.</div></div>
+<div class="card half"><h3>Norns · timeline <span class="tag" id="asof"></span></h3><div id="timeline" class="milestones"></div></div><div class="card full"><h3>Phase 3 · Portfolio operations <span class="tag" id="operationsStatus">Awaiting run</span></h3><p class="muted">Explicit dates are normalized against the selected simulated date. Payment signals remain candidates until linked to contract, invoice, trigger, and payment/credit evidence.</p><div class="agentlist"><div class="agent"><b>Normalized timeline</b><div class="value" id="opsTimelineCount">—</div><p id="opsTimelineSummary" class="small">Milestone status summary</p></div><div class="agent"><b>Financial reconciliation</b><div class="value" id="opsLedgerCount">—</div><p id="opsLedgerSummary" class="small">Payment-event candidates</p></div><div class="agent"><b>Portfolio total</b><div class="value">Not calculated</div><p class="small">No aggregate exposure is inferred from contract-stated amounts.</p></div></div><h3 style="margin-top:18px">Timeline milestones</h3><div id="opsMilestones" class="milestones"></div><h3 style="margin-top:18px">Payment ledger candidates</h3><div id="opsLedger" class="agentlist"></div><p id="opsNotice" class="small"></p></div><div class="card full"><h3>Phase 4 · Evidence-grounded decision queue <span class="tag" id="decisionQueueStatus">Awaiting run</span></h3><p class="muted">Deterministic prioritization of explicit deadlines and financial reconciliation gaps. Every item requires human review.</p><div class="flow" id="decisionQueueCounts"></div><div id="decisionQueueItems" class="agentlist"></div><p id="decisionQueueNotice" class="small"></p></div><div class="card full"><h3>Phase 4 · Agentic collaboration <span class="tag" id="collabStatus">Awaiting run</span></h3><p class="muted">Shared structured state, agent handoffs, bounded follow-up iterations, and execution-budget status.</p><div class="flow" id="collabMetrics"></div><div class="agentlist" id="collabAgents"></div><h4>Unresolved questions</h4><div id="collabQuestions" class="agentlist"></div><h4>Shared-state sections</h4><p class="small" id="sharedStateSections"></p></div><div class="card full"><h3>Phase 5 · Evidence-grounded risk finding <span class="tag" id="groundingStatus">Awaiting run</span></h3><p class="muted">Each material claim is separated into sourced facts, interpretation, verified quotations, and missing proof.</p><div class="agentlist" id="groundingSummary"></div><h4>Supporting evidence · exact source quotations</h4><div class="agentlist" id="groundingEvidence"></div><h4>Missing evidence and uncertainty</h4><div class="agentlist" id="groundingGaps"></div><h4>Conflicting evidence</h4><div id="groundingConflicts" class="agentlist"></div></div><div class="card full"><h3>Follow-up decision <span class="tag" id="followupStatus">Awaiting run</span></h3><div class="agentlist"><div class="agent"><b>Stop reason</b><p id="loopStopReason">—</p><p class="small" id="loopBudget"></p></div><div class="agent"><b>Remaining evidence gaps</b><div id="loopRemainingGaps"></div></div><div class="agent"><b>Next action · approval gate</b><p id="loopNextAction"></p><details id="loopActionDetails"><summary>View full request</summary><p id="loopActionFull"></p></details><div class="notice" id="loopApproval">Awaiting human approval. Draft only; nothing has been sent.</div></div></div></div><div class="card half"><h3>Action center <span class="tag">Draft only</span></h3><div class="action"><h3 id="subject"></h3><div class="meta" id="actionType"></div><p id="body"></p><div id="actioncite"></div></div></div>
+<div class="card half"><h3>Agent message trace</h3><div id="audit"></div></div>
+<div class="card full"><h3>Phase 7 · Persistent audit explorer <span class="tag" id="auditHistoryCount">Loading saved runs</span></h3>
+<p class="muted">Run snapshots and audit events persist in SQLite across server restarts. Review history records decisions; it never dispatches a consequential action.</p><label for="apiToken">API access token (required when server auth is enabled)</label><input id="apiToken" type="password" placeholder="Paste ODIN_API_TOKEN; kept for this tab only" autocomplete="off"><p class="small">Token is stored in this browser tab session only and sent only to Odin API requests.</p>
+<div class="agentlist" id="auditHistory"></div>
+<div class="action" style="margin-top:14px"><h4>Human decision · current run</h4>
+<p class="small" id="approvalRunLabel">Run a portfolio analysis to record a review decision.</p>
+<label for="reviewActionId">Draft action to review</label><select id="reviewActionId"><option value="recommended-action">Primary run action</option></select><label for="reviewerName">Reviewer</label><input id="reviewerName" placeholder="Reviewer name / team" autocomplete="name">
+<label for="reviewNote">Review note (optional)</label><textarea id="reviewNote" rows="2" placeholder="Reason for approval or rejection"></textarea>
+<div class="actions"><button id="approveAction" type="button">Record approval</button><button id="rejectAction" type="button" class="secondary">Record rejection</button></div>
+<p class="small" id="approvalResult">Approval/rejection is recorded only; no email, contract change, or other action is executed.</p></div>
+<div class="agentlist" id="auditSelectedEvents"></div></div><div class="card half"><h3>Data integrity</h3><div id="integrity" class="small"></div></div>
+<div class="card full"><h3>Thor · portfolio scan <span class="tag" id="portfolioCount">Loading documents</span></h3><p class="muted">Evidence-linked candidate lines across every loaded contract. These are triage signals, not final legal conclusions.</p><div id="portfolioTerms" class="agentlist"></div></div><div class="card full"><h3>Odin · contract relationship graph <span class="tag" id="graphCount">Loading relationships</span></h3><p class="muted">Evidence-backed document links and precedence clauses. A graph edge is a sourced relationship signal, not a standalone legal conclusion.</p><div id="graphEdges" class="agentlist"></div></div><div class="card full"><h3>Amendment reconciliation <span class="tag" id="reconcileCount">Review required</span></h3><p class="muted">Explicit changes are separated from amendment sections that still require clause-level review.</p><div id="resolvedChanges" class="agentlist"></div><div id="reviewItems" class="agentlist" style="margin-top:10px"></div></div><div class="card full"><h3>Scope note</h3><p class="muted">Phase 2 adds independent A1, B1, B2, C1, and D1 workstreams plus a portfolio-wide review. Dates and financial amounts are source-grounded; financial totals are not inferred without invoice and trigger evidence. Potential conflicts and candidate obligations require human review. Malformed JSONL records are reported rather than silently dropped.</p></div>
+<section class="card full new-panels" id="agentActivityPanel"><h3>Agent activity · click an agent to inspect its work <span class="tag">Current run evidence</span></h3><p class="muted">Select an agent to inspect its responsibility, state transitions, findings, and source-backed output from the latest run.</p><div class="agentlist" id="agentClickList"></div><div class="hero-callout" id="agentWorkDetail" style="margin-top:12px">Run analysis to populate agent outputs. Empty states are not represented as completed work.</div></section>
+<section class="card full new-panels" id="esignPanel"><h3>Document studio &amp; e-sign approvals <span class="tag">Human-controlled draft workflow</span></h3><p class="muted">Generate a review draft from the current recommendation, edit the text, and record a signature intent. This prototype does not create a legally binding signature or call an e-signature provider.</p><div class="esign-panel"><div class="esign-paper"><h4 id="esignDocTitle">Contract notice / amendment draft</h4><p id="esignDocMeta">Prepared from the latest Odin run · Review required</p><label for="esignTitle" style="font-family:system-ui;font-size:12px;color:#555">Document title</label><input id="esignTitle" value="Contract notice / amendment draft" style="width:100%;margin:5px 0 12px"><label for="esignBody" style="font-family:system-ui;font-size:12px;color:#555">Draft document text</label><textarea id="esignBody" rows="8" style="width:100%;margin-top:5px;background:#fff;color:#262530;border-color:#c9c6d2">This draft is a working document only. Load an Odin analysis to populate its recommendation and supporting context. Please review the contract, cited evidence, and applicable approval policy before issuing.</textarea><div style="margin-top:10px"><span>Authorized reviewer:</span> <span class="signature-line"></span><span>Counterparty:</span> <span class="signature-line"></span></div></div><div><div class="esign-badge"><b>01 · Generate from current run</b><p class="small">Uses available draft action and its cited source references.</p><button type="button" id="generateEsignDraft" class="primary">Generate draft</button></div><div class="esign-badge"><b>02 · Approval workflow</b><p class="small">Prepare an approval packet and store a local prototype status. Real identity verification/provider delivery is not connected.</p><label for="signerName">Authorized signer's name</label><input id="signerName" placeholder="Full legal name" style="width:100%;margin:7px 0"><button type="button" id="recordSignatureIntent">Record signature intent</button><div class="status-pill" id="esignStatus" style="margin-top:10px">Draft not prepared</div></div><button type="button" id="downloadEsignDraft">Download draft (.txt)</button></div></div></section>
+<section class="card full new-panels" id="deadlineCalendarPanel"><h3>Deadline calendar <span class="tag">Source-grounded milestones</span></h3><p class="muted">A month-style view of returned obligations and events. Select a date to inspect any items attached to that day.</p><div class="controls"><label for="calendarMonth">Month</label><input type="month" id="calendarMonth" value="2027-03"><button type="button" id="refreshDeadlineCalendar">Refresh calendar</button></div><div class="deadline-grid" id="deadlineCalendar"></div><div class="hero-callout" id="calendarDayDetail" style="margin-top:12px">No date selected.</div></section>
+<section class="card full new-panels" id="missedDeadlinePanel"><h3>Missed-deadline recovery planner <span class="tag">Scenario guidance · human review</span></h3><p class="muted">Explore response options for a missed deadline. Recommendations are general next-step scenarios, not a legal interpretation; confirm notice periods, cure rights, and remedies against the exact contract before acting.</p><div class="scenario-choice" id="scenarioChoices"><button type="button" data-scenario="payment" aria-pressed="true">Payment missed</button><button type="button" data-scenario="renewal">Renewal / termination window</button><button type="button" data-scenario="delivery">Delivery / performance</button><button type="button" data-scenario="notice">Notice deadline</button><button type="button" data-scenario="security">Security incident</button></div><label for="scenarioContract">Contract / counterparty (optional)</label><input id="scenarioContract" placeholder="Contract ID or counterparty" style="width:100%;margin:7px 0 12px"><label for="scenarioNotes">What happened? (optional details)</label><textarea id="scenarioNotes" rows="3" placeholder="Describe the deadline, when it was missed, and any communication already sent." style="width:100%;margin-bottom:12px"></textarea><div class="scenario-output" id="scenarioOutput"></div><button type="button" id="copyScenario" style="margin-top:12px">Copy recovery checklist</button></section>
+</div><div class="footer">ODIN · all challenge data is fictional</div></main>
+<script>
+const $=x=>document.getElementById(x);function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function apiHeaders(extra={}){const token=$('apiToken')?.value?.trim();return {...extra,...(token?{Authorization:'Bearer '+token}:{})}}
+async function get(u){let r=await fetch(u,{headers:apiHeaders()}),d=await r.json();if(!r.ok)throw Error(d.detail||r.status);return d}
+
+function setupOdinPages(){
+ const dash=$('dash'); if(!dash||dash.dataset.pagesReady)return; dash.dataset.pagesReady='1';
+ const cards=[...dash.children].filter(el=>el.classList.contains('card'));
+ const views={};
+ for(const [key,title] of [['overview','Overview'],['contracts','Contracts'],['timeline','Time machine'],['agents','Agents'],['review','Risk & review'],['audit','Audit']]){
+  const view=document.createElement('section');view.className='page-view'+(key==='overview'?' active':'');view.dataset.view=key;view.setAttribute('aria-label',title);
+  const grid=document.createElement('div');grid.className='page-grid';view.appendChild(grid);dash.appendChild(view);views[key]=grid;
+ }
+ const group=(card)=>{
+  if(card.id==='fr8Synthesis')return 'review';
+  if(card.id==='customPortfolioInput')return 'contracts';
+  const h=(card.querySelector('h3')?.innerText||'').toLowerCase();
+  if(card.classList.contains('metric'))return 'overview';
+  if(h.includes('portfolio command center'))return 'overview';
+  if(h.includes('contract explorer')||h.includes('multi-contract workstreams')||h.includes('extracted terms')||h.includes('portfolio scan')||h.includes('relationship graph')||h.includes('amendment reconciliation')||h.includes('scope note'))return 'contracts';
+  if(h.includes('event and audit timeline')||h.includes('norns · timeline')||h.includes('portfolio operations')||h.includes('timeline milestones')||h.includes('payment ledger')||h.includes('decision queue'))return 'timeline';
+  if(h.includes('agent operations')||h.includes('agentic collaboration')||h.includes('agent message trace'))return 'agents';
+  if(h.includes('risk heatmap')||h.includes('evidence-backed risk')||h.includes("tyr's ruling")||h.includes('evidence-grounded risk finding')||h.includes('follow-up decision')||h.includes('action center')||h.includes('unresolved questions'))return 'review';
+  if(h.includes('persistent audit explorer')||h.includes('data integrity'))return 'audit';
+  if(h.includes('thor · extracted terms'))return 'contracts';
+  return 'review';
+ };
+ cards.forEach(card=>views[group(card)].appendChild(card));
+ const overview=views.overview;
+ // Top navigation already provides these destinations; keep the overview focused on metrics and graph.
+ const metrics=document.createElement('div');metrics.id='overviewMetrics';metrics.innerHTML=
+  '<div class="overview-metric"><div class="label">Active contracts</div><div class="value" id="homeContracts">—</div><div class="hint">Loaded agreements</div></div>'+
+  '<div class="overview-metric"><div class="label">Priority signals</div><div class="value" id="homeRisks">—</div><div class="hint">For human review</div></div>'+
+  '<div class="overview-metric"><div class="label">Upcoming deadlines</div><div class="value" id="homeDeadlines">—</div><div class="hint">Source-grounded dates</div></div>'+
+  '<div class="overview-metric"><div class="label">Open review items</div><div class="value" id="homeReview">—</div><div class="hint">No automatic legal conclusions</div></div>';
+ overview.parentElement.insertBefore(metrics,overview);
+ const graphCard=document.createElement('div');graphCard.className='card full';graphCard.innerHTML='<h3>Contract relationship graph <span class="tag">Select a contract node</span></h3><p class="muted">Connections represent relationship evidence; downstream impact is a candidate for review, not a proven legal outcome.</p><div id="homeGraph" class="graph-wrap"><p style="padding:20px;color:#777d6e">Run analysis to map contract relationships.</p></div>';
+ overview.parentElement.insertBefore(graphCard,overview);
+ const orch=document.createElement('div');orch.className='card full orchestrator-panel';orch.id='odinOrchestratorPanel';orch.innerHTML='<div class="orch-head"><div><div class="eyebrow">FR1 · ORCHESTRATION CONTROL TOWER</div><h3>Odin orchestrator <span class="tag" id="orchRunStatus">Awaiting analysis</span></h3><p class="muted">Live view of planning, agent delegation, workstream progress and bounded coordination for the current run.</p></div><div class="orch-last-run" id="orchRunMeta">No run loaded</div></div><div class="orch-pipeline" id="orchPipeline"><div class="orch-step"><span>01</span><b>Intake</b><small>Company + contracts</small></div><i>→</i><div class="orch-step"><span>02</span><b>Plan</b><small>Contract streams + portfolio</small></div><i>→</i><div class="orch-step"><span>03</span><b>Delegate</b><small>Agent tasks + status</small></div><i>→</i><div class="orch-step"><span>04</span><b>Coordinate</b><small>Clarify / verify / follow-up</small></div><i>→</i><div class="orch-step"><span>05</span><b>Synthesis</b><small>Decision-ready output</small></div></div><div class="orch-stats" id="orchStats"><div><span>Workstreams</span><b>—</b></div><div><span>Completed</span><b>—</b></div><div><span>Agents recorded</span><b>—</b></div><div><span>Follow-up iterations</span><b>—</b></div></div><h4>Functional requirement coverage</h4><div class="orch-fr-list" id="orchFRList"><p class="small">Run agents to populate requirement evidence.</p></div><h4>Workstream execution map</h4><div class="orch-workstreams" id="orchWorkstreams"><p class="small">No workstream data yet.</p></div><h4>Coordination trace</h4><div class="orch-trace" id="orchTrace"><p class="small">Agent handoffs and loop outcomes will appear here after a run.</p></div>';
+ views.agents.prepend(orch);
+ document.querySelectorAll('[data-page]').forEach(btn=>btn.addEventListener('click',()=>showPage(btn.dataset.page)));
+ function showPage(key){document.querySelectorAll('.page-view').forEach(v=>v.classList.toggle('active',v.dataset.view===key));document.querySelectorAll('[data-page]').forEach(b=>{const on=b.dataset.page===key;b.classList.toggle('active',on);b.setAttribute('aria-current',on?'page':'false')});window.scrollTo({top:0,behavior:'smooth'});}
+ window.odinShowPage=showPage;
+}
+
+
+
+let fr9SliderTimer=null;
+function initFR9TimeSlider(){
+ const slider=$('fr9TimeSlider');if(!slider||slider.dataset.bound)return;slider.dataset.bound='1';
+ const min=Date.parse('2027-01-15T00:00:00Z'),max=Date.parse('2027-09-15T00:00:00Z');
+ slider.addEventListener('input',()=>{const d=new Date(min+(max-min)*Number(slider.value)/100);const iso=d.toISOString().slice(0,10);const sel=$('date');if(sel){let opt=[...sel.options].find(o=>o.value===iso);if(!opt){opt=document.createElement('option');opt.value=iso;opt.textContent=iso;sel.appendChild(opt)}sel.value=iso}if($('fr9TimeValue'))$('fr9TimeValue').textContent=iso;if($('fr9TimeStatus'))$('fr9TimeStatus').textContent='Simulated date changed to '+iso+' · recalculating deadlines, risk signals, and review queue…';clearTimeout(fr9SliderTimer);fr9SliderTimer=setTimeout(()=>{if(typeof runOdin==='function')runOdin()},450)});
+}
+
+async function runCustomPortfolio(){
+ const button=$('customAnalyzeButton'),status=$('customPortfolioStatus'),out=$('customPortfolioResults');
+ const files=[...($('customContractFiles')?.files||[])];
+ if(!files.length){status.textContent='Choose at least one .txt contract file.';return}
+ const context=$('customCompanyContext').value.trim();
+ if(context.length<10){status.textContent='Please provide at least 10 characters of company context.';return}
+ button.disabled=true;status.textContent='Reading contracts and running source-grounded portfolio triage…';out.innerHTML='';
+ try{
+  const contracts=[];
+  for(const file of files){
+   if(!file.name.toLowerCase().endsWith('.txt'))throw new Error('Only .txt files are supported by this portfolio intake form.');
+   const id=file.name.replace(/\.txt$/i,'').replace(/[^A-Za-z0-9._-]/g,'_').slice(0,80);
+   contracts.push({id,text:await file.text()});
+  }
+  let events=[];
+  const rawEvents=$('customEvents').value.trim();
+  if(rawEvents){events=JSON.parse(rawEvents);if(!Array.isArray(events))throw new Error('Event records must be a JSON array.')}
+  let paymentLedger=[];
+  const rawLedger=$('customPaymentLedger')?.value.trim()||'';
+  if(rawLedger){paymentLedger=JSON.parse(rawLedger);if(!Array.isArray(paymentLedger))throw new Error('Payment ledger must be a JSON array.')}
+  const token=sessionStorage.getItem('odinApiToken')||'';
+  const response=await fetch('/api/analyze-portfolio',{method:'POST',headers:{'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})},body:JSON.stringify({company_context:context,contracts,event_records:events,payment_ledger:paymentLedger,as_of:$('customAsOf').value||$('date').value,use_claude:$('customUseClaude')?.checked||false})});
+  const data=await response.json();
+  if(!response.ok)throw new Error(data.detail||('Request failed with HTTP '+response.status));
+  const reports=data.contract_reports||[],company=data.company_risk_report||{},graph=data.contract_graph||{},alerts=data.alert_feed||[];
+  const finance=company.financial_reconciliation||data.financial_reconciliation||{};
+  const financeCounts=finance.counts||{};
+  currentAuditRunId = data.run_id || (data.audit || {}).run_id || null;
+  if (currentAuditRunId) {
+   $('approvalRunLabel').textContent = 'Current run: ' + currentAuditRunId;
+   await refreshAuditHistory(currentAuditRunId);
+   await inspectAuditRun(currentAuditRunId);
+  }
+  const escHtml=s=>esc(String(s??''));
+  out.innerHTML='<div class="metric-grid"><div class="metric"><span>Contracts</span><b>'+escHtml(company.contract_count||reports.length)+'</b></div><div class="metric"><span>Graph nodes</span><b>'+escHtml(graph.node_count||0)+'</b></div><div class="metric"><span>Review signals</span><b>'+escHtml(alerts.length)+'</b></div><div class="metric"><span>Financial exposure</span><b>Not calculated</b></div></div>'+
+   '<section class="fr9-section"><h4>Company risk report · '+escHtml(data.as_of_date)+'</h4><p>'+escHtml(company.limitations?.join(' ')||'Human review required.')+'</p><p><b>Cross-contract relationships:</b> '+escHtml((graph.edges||[]).length)+'</p><p><b>Payment ledger rows:</b> '+escHtml(finance.payment_ledger_rows_received??financeCounts.payment_candidates??0)+' · <b>Invoice groups:</b> '+escHtml(financeCounts.invoice_groups??finance.invoice_groups?.length??financeCounts.explicit_invoice_groups??0)+' · <b>Confirmed exposure:</b> Not calculated</p><p><b>Worst-case projection:</b> '+escHtml(company.worst_case_projection?.note||'Not calculated from unsupported inputs.')+'</p></section>'+
+   '<section class="fr9-section"><h4>Invoice / payment reconciliation candidates</h4>'+((finance.invoice_groups||finance.invoice_reconciliation_candidates||[]).map(group=>'<div class="agent"><b>'+escHtml(group.contract_id||'Contract unresolved')+' · '+escHtml(group.invoice_id||group.invoice_reference||'Invoice reference unavailable')+'</b><p>Amounts: '+escHtml((group.amount_candidates||[]).join(', ')||'No numeric amount candidate')+' · Source rows: '+escHtml((group.event_ids||group.source_event_ids||[]).join(', '))+'</p><p><b>Candidate ledger balance:</b> '+escHtml(group.candidate_ledger_balance===null||group.candidate_ledger_balance===undefined?'Not calculated':(group.candidate_balance_currency||'Currency unknown')+' '+Number(group.candidate_ledger_balance).toLocaleString())+' · <b>Reconciliation:</b> '+escHtml(group.candidate_balance_status||'not calculated')+'</p><div class="meta">Status: '+escHtml(group.status||'candidate_requires_human_review')+' · Payment trigger candidate: '+escHtml(group.trigger_evidence_status?.payment_trigger_candidate_found??group.contractual_payment_trigger_candidates?.length>0?'found':'not found')+' · Penalty/credit trigger candidate: '+escHtml(group.trigger_evidence_status?.penalty_or_credit_trigger_candidate_found??group.penalty_or_credit_trigger_candidates?.length>0?'found':'not found')+' · Confirmed liability: no</div><p class="small">Candidate balance is arithmetic over supplied ledger rows, not verified exposure. Check source authenticity, invoice/credit records, due dates, and contractual trigger before relying on it.</p></div>').join('')||'<p class="small">No explicit invoice-linked groups. Individual ledger/event candidates remain available in the financial reconciliation output.</p>')+'</section>'+
+   '<section class="fr9-section"><h4>Event → contract → clause mapping</h4><p class="small">Links are rule-based candidates. Event authenticity, contractual trigger, causation, and breach are not established by a match.</p>'+((reports.flatMap(r=>(r.mapped_events||[]).map(e=>({...e,_report_contract:r.contract_id}))).map(e=>'<div class="agent"><b>'+escHtml(e._report_contract||e.contract_id)+' · '+escHtml(e.event_id||'event')+'</b><p>'+escHtml(e.body||'')+'</p><div class="meta">Link: '+escHtml(e.contract_link?.method||'unknown')+' ('+escHtml(e.contract_link?.confidence||'unrated')+') · Event families: '+escHtml((e.event_families||[]).join(', ')||'none detected')+' · Source authenticity: not independently verified · Trigger: not determined</div>'+((e.matched_clauses||[]).map(m=>'<div class="evidence"><b>'+escHtml(m.category||'clause')+' · '+escHtml(m.clause_reference||'reference unavailable')+'</b><p>'+escHtml(m.title||'Candidate clause association')+' · Matched families: '+escHtml((m.matched_event_families||[]).join(', ')||'lexical overlap')+'</p><blockquote>'+escHtml(m.clause_quote||'No clause quote available')+'</blockquote><small>'+(m.clause_quote_verified?'Exact clause quote verified':'Clause quote needs verification')+' · Trigger and causation remain unproven</small>'+((m.trigger_language_candidates||[]).length?'<p><b>Trigger language:</b> '+escHtml(m.trigger_language_candidates.join(' · '))+'</p>':'')+(m.notice_period_candidate?'<p><b>Deadline candidate:</b> '+escHtml(m.notice_period_candidate.deadline||'Not calculated')+' · '+escHtml(m.notice_period_candidate.status)+' · '+escHtml(m.notice_period_candidate.period_text||'')+'</p>':'')+'</div>').join('')||'<p class="small">No clause-family match; event remains linked to the contract only.</p>')+((e.candidate_deadline_dates||[]).length?'<p><b>Event date candidates:</b> '+escHtml(e.candidate_deadline_dates.join(', '))+'</p>':'')+'<p class="small">'+escHtml(e.note||'Human review required.')+'</p></div>').join(''))||'<p class="small">No event-to-contract links were established from the supplied event records.</p>')+'</section>'+
+   '<section class="fr9-section"><h4>Workstream plan · FR1.2 / FR1.3</h4>'+((data.workstreams||[]).map(w=>'<div class="agent"><b>'+escHtml(w.label||w.id)+'</b><p>'+escHtml(w.responsibility||'')+'</p><div class="meta">'+escHtml(w.status||'')+' · '+escHtml(w.progress?.completed_stages??0)+' / '+escHtml(w.progress?.total_stages??0)+' stages · Contracts: '+escHtml((w.contract_ids||[]).join(', '))+' · Human review: '+escHtml(w.completion_gate?.human_review_required?'required':'not flagged')+'</div><p class="small">'+escHtml(w.completion_note||'')+'</p></div>').join('')||'<p class="small">No workstream plan returned.</p>')+'</section>'+
+   '<section class="fr9-section"><h4>Agent challenge · verification · ruling trace</h4>'+((data.agent_debate?.traces||[]).map(t=>'<div class="agent"><b>Contract '+escHtml(t.contract_id)+'</b><div class="debate-column"><span class="agent-role loki">LOKI · ATTACK</span>'+((t.loki_attacks||[]).slice(0,3).map(a=>'<p>'+escHtml(a.attack_path?.join(' ')||a.claim||a.title)+'</p>').join('')||'<p>No risk candidate emitted.</p>')+'</div><div class="debate-column"><span class="agent-role heimdall">HEIMDALL · VERIFY</span><p>'+escHtml(t.heimdall_verification?.status||'not reported')+'</p><p>'+escHtml((t.heimdall_verification?.findings||[]).flatMap(f=>f.challenges||[]).join(' ')||'No separate challenge text returned.')+'</p><p class="small">Evidence gaps: '+escHtml((t.heimdall_verification?.findings||[]).flatMap(f=>f.evidence_gaps||[]).join(' · ')||'none reported')+'</p></div><div class="debate-column"><span class="agent-role tyr">TYR · RULING</span>'+((t.tyr_rulings||[]).slice(0,3).map(r=>'<p><b>'+escHtml(r.decision)+'</b> · '+escHtml(r.rationale)+'</p>').join('')||'<p>No ruling candidate returned.</p>')+'</div></div>').join('')||'<p class="small">No agent traces returned.</p>')+'</section>'+
+   '<section class="fr9-section"><h4>Bounded multi-agent workflow</h4><p><b>Mode:</b> '+escHtml(data.agent_workflow?.mode||'not reported')+' · <b>Agent calls:</b> '+escHtml(data.agent_workflow?.agent_calls_used??'—')+' / '+escHtml(data.agent_workflow?.agent_call_budget??'—')+' · <b>Iterations:</b> '+escHtml(data.agent_workflow?.iterations_used??0)+' / '+escHtml(data.agent_workflow?.max_iterations??0)+' · <b>Stop:</b> '+escHtml(data.agent_workflow?.stop_reason||'not reported')+' · <b>LLM:</b> '+escHtml(data.agent_workflow?.llm_provider_status||'not reported')+'</p><p>'+escHtml(data.agent_workflow?.notice||'Agent workflow metadata unavailable.')+'</p><p><b>Event ingestion:</b> '+escHtml(data.agent_workflow?.event_ingestion?.counts?.accepted??0)+' accepted · '+escHtml(data.agent_workflow?.event_ingestion?.counts?.rejected??0)+' rejected · event authenticity is not independently verified.</p><p><b>Invoice/payment reconciliation:</b> '+escHtml(data.financial_reconciliation?.counts?.payment_candidates??0)+' candidates · '+escHtml(data.financial_reconciliation?.counts?.invoice_groups??0)+' invoice groups · '+escHtml(data.financial_reconciliation?.counts?.candidate_balances_calculated??0)+' candidate balances calculated · '+escHtml(data.financial_reconciliation?.counts?.reconciliation_blockers??0)+' reconciliation blockers · '+escHtml(data.financial_reconciliation?.counts?.unlinked_candidates??0)+' unlinked. Candidate balances are not verified exposure until source, invoice, trigger, and payment records are confirmed.</p><h5>Cross-contract candidates · human review required</h5>'+((data.cross_contract_candidates||[]).map(c=>'<div class="evidence"><b>'+escHtml(c.topic)+' · '+escHtml(c.classification)+'</b><p>'+escHtml(c.explanation)+'</p><p><b>Contracts:</b> '+escHtml((c.contract_ids||[]).join(' ↔ '))+' · <b>Status:</b> '+escHtml(c.status)+'</p>'+((c.evidence||[]).map(e=>'<blockquote>'+escHtml(e.quote)+'</blockquote><small>'+escHtml(e.document_id)+' · line '+escHtml(e.line_number??'—')+' · '+(e.verified?'verified source quote':'unverified quote')+'</small>').join(''))+(c.agent_review?'<p><b>Agent review:</b> Loki '+escHtml(c.agent_review.loki_challenge?.status||'not run')+' → Heimdall '+escHtml(c.agent_review.heimdall_verification?.status||'not run')+' → Tyr '+escHtml(c.agent_review.tyr_ruling?.decision||c.agent_review.decision||'not reviewed')+'</p><p class="small">Human approval required; no legal conflict is determined.</p>':'')+'<p class="small">'+escHtml((c.unresolved_questions||[]).join(' · '))+'</p></div>').join('')||'<p class="small">No cross-contract candidates detected; absence of candidates is not proof of no dependency.</p>')+'</section>'+
+   '<section class="fr9-section"><h4>Amendment lineage · precedence · incorporated terms</h4><p class="small">Odin now traces explicit amendment references, precedence wording, effective-date candidates, and referenced documents. These are source-grounded candidates; no controlling version or legal conflict is automatically determined.</p><div class="metric-grid"><div class="metric"><span>Amendment documents</span><b>'+escHtml(data.amendment_resolution?.summary?.amendment_documents??0)+'</b></div><div class="metric"><span>Explicit amendment links</span><b>'+escHtml(data.amendment_resolution?.summary?.explicit_amendment_links??0)+'</b></div><div class="metric"><span>Precedence clauses</span><b>'+escHtml(data.amendment_resolution?.summary?.precedence_clauses??0)+'</b></div><div class="metric"><span>Missing source requests</span><b>'+escHtml(data.amendment_resolution?.summary?.missing_document_requests??0)+'</b></div></div>'+Object.values(data.amendment_resolution?.document_signals||{}).map(d=>'<div class="agent"><b>'+escHtml(d.document_id)+' · '+escHtml(d.document_type_candidate||'document')+'</b><p>Effective-date candidates: '+escHtml((d.effective_date_candidates||[]).map(x=>x.normalized_date||x.raw).join(', ')||'none detected')+'</p><div class="meta">Explicit amendment targets: '+escHtml((d.explicit_target_contract_ids||[]).join(', ')||'not identified')+' · Legal effect confirmed: no</div></div>').join('')+((data.amendment_resolution?.lineage_edges||[]).map(e=>'<div class="evidence"><b>'+escHtml(e.source)+' → '+escHtml(e.target)+' · explicit amendment reference</b><p>'+escHtml(e.status||'requires review')+'</p><blockquote>'+escHtml(e.evidence?.quote||'No exact line captured')+'</blockquote><p class="small">Amendment validity, scope, and effective version are not confirmed.</p></div>').join('')||'<p class="small">No explicit amendment-to-contract ID links detected. A missing link is not proof that no amendment exists.</p>')+((data.amendment_resolution?.precedence_clauses||[]).map(p=>'<div class="evidence"><b>'+escHtml(p.document_id)+' · line '+escHtml(p.line_number)+' · '+escHtml(p.direction_candidate||'direction unresolved')+'</b><blockquote>'+escHtml(p.evidence?.quote||'')+'</blockquote><p class="small">Referenced contracts: '+escHtml((p.referenced_contract_ids||[]).join(', ')||'none explicitly identified')+' · Legal precedence not resolved.</p></div>').join('')||'')+((data.amendment_resolution?.incorporated_references||[]).map(m=>'<div class="evidence"><b>Incorporated reference · '+escHtml(m.document_id)+' · line '+escHtml(m.line_number)+'</b><p>'+escHtml(m.reference_label||'Referenced external document')+'</p><blockquote>'+escHtml(m.evidence?.quote||'')+'</blockquote><div class="meta">Linked supplied contracts: '+escHtml((m.explicit_target_contract_ids||[]).join(', ')||'none')+' · Source availability must be verified.</div></div>').join('')||'')+((data.amendment_resolution?.missing_document_requests||[]).map(m=>'<div class="agent"><b>Missing document · '+escHtml(m.document_id||'source unresolved')+'</b><p>'+escHtml(m.reason||m.reference_label||m.type)+'</p><div class="meta">'+escHtml(m.status||'review required')+' · '+escHtml(m.reference_label||'')+'</div></div>').join('')||'')+((data.amendment_resolution?.candidate_reviews||[]).map(r=>'<div class="agent"><b>'+escHtml((r.contract_ids||[]).join(' ↔ '))+' · '+escHtml(r.topic||'term')+'</b><p>'+escHtml(r.status||'review required')+'</p><p class="small">Amendment documents in pair: '+escHtml((r.amendment_documents_in_pair||[]).join(', ')||'none detected')+' · Topic mentioned by amendment: '+escHtml(r.amendment_mentions_candidate_topic?'yes':'not confirmed')+' · Conflict resolved: no</p><p>'+escHtml((r.questions_to_resolve||[]).join(' · '))+'</p></div>').join('')||'<p class="small">No pair-specific amendment review candidates were produced.</p>')+'</section>'+
+   '<section class="fr9-section"><h4>Contract reports</h4>'+reports.map(r=>'<details class="agent" open><summary><b>'+escHtml(r.contract_id)+'</b> · '+escHtml(r.status)+' · '+escHtml(r.key_terms?.length||0)+' extracted candidates</summary><p><b>Risks:</b> '+escHtml((r.risks||[]).length)+' source-grounded review candidates</p><p><b>Timeline candidates:</b> '+escHtml((r.timeline||[]).length)+'</p><p><b>Citations verified:</b> '+escHtml(r.citation_validation?.verified||0)+' / '+escHtml(r.citation_validation?.total||0)+'</p>'+((r.risks||[]).slice(0,8).map(x=>'<div class="evidence"><b>'+escHtml(x.severity)+' · '+escHtml(x.title)+'</b><p>'+escHtml(x.claim)+'</p><blockquote>'+escHtml(x.evidence?.quote||'')+'</blockquote><small>'+escHtml(x.evidence?.document_id||'')+' · '+escHtml(x.evidence?.clause_reference||'')+' · '+(x.evidence?.verified?'verified quote':'requires verification')+'</small></div>').join(''))+'</details>').join('')+'</section>'+
+   '<section class="fr9-section"><h4>Relationship evidence</h4>'+((graph.edges||[]).slice(0,30).map(e=>'<div class="graph-edge-row"><b>'+escHtml(e.source)+' → '+escHtml(e.target)+'</b><span>'+escHtml(e.relation)+'</span><p>'+escHtml(e.evidence?.quote||'No direct quote returned')+'</p><small>'+escHtml(e.evidence?.document_id||'')+' · line '+escHtml(e.evidence?.line_number??'—')+'</small></div>').join('')||'<p>No relationships detected from explicit source references.</p>')+'</section>'+
+   '<section class="fr9-section"><h4>Prioritized review alerts</h4>'+alerts.slice(0,30).map(a=>'<div class="alert-row"><span class="alert-rank">!</span><div><b>'+escHtml(a.severity)+' · '+escHtml(a.title)+'</b><p>'+escHtml(a.reason)+'</p><small>'+escHtml(a.contract_id)+' · '+escHtml(a.evidence?.clause_reference||'')+'</small></div></div>').join('')+'</section>';
+  status.textContent='Analysis saved. Run ID: '+(data.run_id||data.audit?.run_id||'not returned')+'. '+reports.length+' contract reports returned.';
+ }catch(error){status.textContent='Portfolio analysis failed safely: '+error.message;out.innerHTML='';}
+ finally{button.disabled=false;}
+}
+
+async function ingestCustomEvents(){
+ const button=$('customIngestEvents'),status=$('customPortfolioStatus');
+ if(!button||!status)return;
+ button.disabled=true;status.textContent='Validating and storing event records…';
+ try{
+  const raw=$('customEvents').value.trim();
+  if(!raw)throw new Error('Add a JSON array of event records first.');
+  const events=JSON.parse(raw);
+  if(!Array.isArray(events)||!events.length)throw new Error('Event records must be a non-empty JSON array.');
+  const response=await fetch('/api/events/ingest',{method:'POST',headers:apiHeaders({'Content-Type':'application/json'}),body:JSON.stringify({source:'dashboard-manual-feed',events})});
+  const data=await response.json();
+  if(!response.ok)throw new Error(data.detail||('Request failed with HTTP '+response.status));
+  const counts=data.counts||{};
+  status.textContent='Event feed stored: '+(counts.inserted||0)+' inserted, '+(counts.updated||0)+' updated, '+(counts.duplicates||0)+' unchanged, '+(counts.rejected||0)+' rejected. '+((counts.updated||0)?'Before/after revision snapshots retained for changed events. ':'')+'Source authenticity is not independently verified.';
+ }catch(error){status.textContent='Event ingestion failed: '+error.message;}
+ finally{button.disabled=false;}
+}
+
+function renderOdinSynthesis(d){
+ const host=$('fr8ContractReports'),companyHost=$('fr8CompanyReport'),status=$('fr8SynthesisStatus');
+ if(!host||!companyHost)return;
+ const synthesis=d.synthesis||{};
+ const reports=synthesis.contract_reports||[];
+ const company=synthesis.company_risk_report||{};
+ if(status)status.textContent=synthesis.status||'Synthesis unavailable';
+ companyHost.innerHTML='<div class="metric-grid"><div class="metric"><span>Contracts reported</span><b>'+esc(company.contract_count??reports.length)+'</b></div><div class="metric"><span>Cross-contract relationships</span><b>'+esc((company.cross_contract_relationships||[]).length)+'</b></div><div class="metric"><span>Priority actions</span><b>'+esc((company.prioritized_action_list||[]).length)+'</b></div><div class="metric"><span>Financial exposure</span><b>'+(company.total_financial_exposure===null||company.total_financial_exposure===undefined?'Not calculated':esc(company.total_financial_exposure))+'</b></div></div><p><b>As of:</b> '+esc(company.as_of_date||d.as_of_date||'—')+' · <b>Exposure status:</b> '+esc(company.financial_exposure_status||'not reported')+'</p><p><b>Worst-case projection:</b> '+esc(company.worst_case_projection?.note||'Not calculated from insufficient evidence.')+'</p><p><b>Cross-contract review items:</b> '+esc((company.cross_contract_review_items||[]).length)+' · <b>Unresolved questions:</b> '+esc((company.unresolved_questions||[]).length)+'</p><p class="small">'+esc((company.limitations||[]).join(' '))+'</p>';
+ const workflow=d.portfolio_agent_workflow||{};
+ const crossCandidates=d.cross_contract_candidates||company.cross_contract_candidates||[];
+ companyHost.innerHTML+='<section class="fr9-section"><h4>Portfolio agent workflow</h4><p><b>Mode:</b> '+esc(workflow.mode||'not reported')+' · <b>Calls:</b> '+esc(workflow.agent_calls_used??'—')+' / '+esc(workflow.agent_call_budget??'—')+' · <b>Iterations:</b> '+esc(workflow.iterations_used??0)+' / '+esc(workflow.max_iterations??0)+' · <b>Stop:</b> '+esc(workflow.stop_reason||'not reported')+' · <b>LLM:</b> '+esc(workflow.llm_provider_status||'not reported')+'</p><p>'+esc(workflow.notice||'Bounded workflow metadata unavailable.')+'</p><h5>Cross-contract candidates · review required</h5>'+((crossCandidates||[]).slice(0,30).map(c=>'<div class="evidence"><b>'+esc(c.topic)+' · '+esc(c.classification)+'</b><p>'+esc(c.explanation)+'</p><p><b>Contracts:</b> '+esc((c.contract_ids||[]).join(' ↔ '))+' · <b>Status:</b> '+esc(c.status)+'</p>'+((c.evidence||[]).map(e=>'<blockquote>'+esc(e.quote)+'</blockquote><small>'+esc(e.document_id)+' · line '+esc(e.line_number??'—')+' · '+(e.verified?'verified':'review required')+'</small>').join(''))+(c.agent_review?'<p><b>Agent review:</b> Loki '+esc(c.agent_review.loki_challenge?.status||'not run')+' → Heimdall '+esc(c.agent_review.heimdall_verification?.status||'not run')+' → Tyr '+esc(c.agent_review.tyr_ruling?.decision||c.agent_review.decision||'not reviewed')+'</p><p class="small">Human approval required; no legal conflict is determined.</p>':'')+'<p class="small">'+esc((c.unresolved_questions||[]).join(' · '))+'</p></div>').join('')||'<p class="small">No candidates detected. This is not proof that no cross-contract dependency exists.</p>')+'</section>';
+ host.innerHTML=reports.map(r=>'<details class="agent"><summary><b>'+esc(r.contract_id)+'</b> · '+esc(r.status||'')+' · '+esc(r.key_terms?.length||0)+' extracted candidates</summary><p><b>Obligations:</b> '+esc((r.obligations||[]).length)+' · <b>Timeline items:</b> '+esc((r.timeline||[]).length)+' · <b>Risk items:</b> '+esc((r.risks||[]).length)+'</p><p><b>Citations verified:</b> '+esc(r.citation_validation?.verified||0)+' / '+esc(r.citation_validation?.total||0)+' · <b>Confidence:</b> '+esc(r.confidence??'not calculated')+'</p><h5>Key source terms</h5>'+((r.key_terms||[]).slice(0,5).map(t=>'<div class="evidence"><b>'+esc(t.category||'Term candidate')+'</b><blockquote>'+esc(t.citation?.quote||'')+'</blockquote><small>'+esc(t.citation?.document_id||r.contract_id)+' · '+esc(t.citation?.clause_reference||'')+' · '+(t.citation?.verified?'verified':'review required')+'</small></div>').join('')||'<p class="small">No extracted terms returned.</p>')+'<h5>Recommended actions (draft only)</h5>'+((r.recommended_actions||[]).slice(0,3).map(a=>'<div class="evidence"><b>'+esc(a.subject||a.type||'Review action')+'</b><p>'+esc(a.body||'')+'</p></div>').join('')||'<p class="small">No action draft returned.</p>')+'</details>').join('')||'<p class="small">No contract reports returned for this run.</p>';
+}
+
+function renderOdinDashboardFR9(d){
+ const host=$('fr9Dashboard');if(!host)return;
+ const docs=(d.portfolio_extraction||{}).contracts||{},graph=d.contract_graph||{},nodes=graph.nodes||[],edges=graph.edges||[];
+ const workstreams=(d.workstream_analysis||{}).workstreams||[],timeline=(d.portfolio_operations||{}).timeline||{},milestones=timeline.milestones||((d.timeline||{}).milestones||[]);
+ const finding=d.risk_finding||{},verification=d.verification||{},ruling=d.ruling||{},queue=d.decision_queue||{},issues=queue.issues||[];
+ const attacks=finding.attack_path||finding.attacks||finding.challenge_points||[],citations=(ruling.action_draft||{}).citations||[];
+ const contracts=Object.keys(docs);
+ const allRisks=workstreams.flatMap(w=>(w.risk_findings||[]).map(x=>({...x,_contract:w.label||w.id||((w.contract_ids||[]).join(', '))})));
+ const current=$('date')?.value||d.as_of_date||'2027-03-15';
+ const dateMs=Date.parse(current+'T00:00:00Z');
+ const dateMin=Date.parse('2027-01-15T00:00:00Z'),dateMax=Date.parse('2027-09-15T00:00:00Z');
+ const slider=$('fr9TimeSlider'),readout=$('fr9TimeValue');
+ if(slider){slider.value=String(Math.max(0,Math.min(100,((dateMs-dateMin)/(dateMax-dateMin))*100)));}if(readout)readout.textContent=current;
+ const stated=allRisks.filter(x=>/high|critical|severe/i.test(String(x.severity||x.priority||''))).length;
+ const totalExposure=(d.portfolio_operations||{}).financial_reconciliation||{};
+ const amount=totalExposure.total_exposure??totalExposure.potential_exposure??null;
+ const gauge=$('fr9ExposureGauge');
+ if(gauge){const pct=amount!==null&&Number.isFinite(Number(amount))?Math.max(0,Math.min(100,Number(amount)/(Number(totalExposure.exposure_limit)||1000000)*100)):null;gauge.innerHTML='<div class="exposure-dial" style="--dial:'+(pct===null?0:pct*3.6)+'deg"><div><b>'+(amount===null?'Not calculated':esc(amount))+'</b><span>'+(pct===null?'Source-backed financial total unavailable':Math.round(pct)+'% of configured scale')+'</span></div></div><p class="small">No total is inferred from contract-stated amounts. A gauge value appears only if the backend returns a calculable exposure figure.</p>'}
+ const matrix=$('fr9Heatmap');
+ if(matrix){const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep'];const mode=$('fr9HeatmapMode')?.value||'contract';const rows=mode==='clause'?[...new Set(allRisks.map(r=>String(r.clause_type||r.clause_category||r.category||r.risk_type||r.type||'Unclassified risk / clause type')))].slice(0,12):((contracts.length?contracts:workstreams.map(w=>w.label||w.id)).slice(0,12));matrix.innerHTML=rows.map(id=>'<div class="heat-row"><b>'+esc(id)+'</b>'+months.map((m,i)=>{const related=allRisks.filter(r=>mode==='clause'?String(r.clause_type||r.clause_category||r.category||r.risk_type||r.type||'Unclassified risk / clause type')===id:(String(r._contract).includes(id)||String(r.contract_id||'')===id));const score=related.length?Math.min(4,related.filter(r=>{const dt=String(r.date||r.deadline||r.due_date||'');return !dt||dt.includes('2027-'+String(i+1).padStart(2,'0'))}).length):0;return '<span class="heat-cell heat-level-'+score+'" title="'+esc(id+' · '+m+' · '+score+' matching risk signals')+'">'+(score||'·')+'</span>'}).join('')+'</div>').join('')||'<p class="small">No '+(mode==='clause'?'clause-type':'contract')+' risk rows returned by the current analysis.</p>'}
+ const debate=$('fr9Debate');
+ if(debate){const rulingText=ruling.decision||ruling.title||ruling.ruling||'No ruling text returned';const verifyText=verification.summary||verification.result||verification.status||'No verification summary returned';const attackList=Array.isArray(attacks)?attacks:[];debate.innerHTML='<div class="debate-column"><span class="agent-role loki">LOKI · ATTACK</span><h4>Challenge the claim</h4>'+attackList.slice(0,5).map(a=>'<p>'+esc(typeof a==='string'?a:(a.claim||a.attack||a.description||JSON.stringify(a)))+'</p>').join('')+'<p class="small">'+(attackList.length?'Attack paths returned by current run.':'No separate attack-path list returned; see risk finding below.')+'</p></div><div class="debate-column"><span class="agent-role heimdall">HEIMDALL · VERIFY</span><h4>Check the evidence</h4><p>'+esc(typeof verifyText==='string'?verifyText:JSON.stringify(verifyText))+'</p><p class="small">'+esc((verification.citations_verified??verification.verified_count??'—')+' verified citation count (if reported)')+'</p></div><div class="debate-column"><span class="agent-role tyr">TYR · RULING</span><h4>Decision for review</h4><p>'+esc(typeof rulingText==='string'?rulingText:JSON.stringify(rulingText))+'</p><p class="small">Human review required; this is not an automatic legal determination.</p></div>'}
+ const alert=$('fr9Alerts');
+ if(alert){const rows=issues.slice().sort((a,b)=>{const rank=x=>/critical/i.test(x.priority||x.severity||'')?0:/high/i.test(x.priority||x.severity||'')?1:2;return rank(a)-rank(b)});alert.innerHTML=rows.slice(0,8).map((x,i)=>'<div class="alert-row"><span class="alert-rank">'+String(i+1).padStart(2,'0')+'</span><div><b>'+esc(x.title||x.issue||x.type||'Review item')+'</b><p>'+esc(x.description||x.reason||x.message||x.evidence?.quote||'Evidence review required')+'</p><small>'+esc(x.contract_id||x.document_id||'Portfolio')+' · '+esc(x.priority||x.severity||'priority not classified')+'</small></div></div>').join('')||'<p class="small">No decision-queue alerts returned for this run.</p>'}
+ const actions=$('fr9Actions'),draft=ruling.action_draft||finding.action_draft||{};
+ if(actions){actions.innerHTML='<div class="draft-action"><div class="draft-header"><b>'+esc(draft.subject||draft.type||'No draft notice returned')+'</b><span class="tag">DRAFT ONLY</span></div><p>'+esc(draft.body||'The current run did not return a notice body.')+'</p><div class="draft-citations">'+(draft.citations||[]).map(x=>'<span>'+esc(x.document_id||x.contract_id||'Document')+' · '+esc(x.clause_reference||x.clause_id||'Clause reference unavailable')+' · '+(x.verified?'verified':'unverified')+'</span>').join('')+'</div><p class="small">Nothing is sent automatically. Review every clause citation before approval.</p></div>'}
+ const graphHost=$('fr9Graph');
+ if(graphHost){
+  const nodeObjects=[],nodeIndex=new Map();
+  const visibleNodes=[...nodes.filter(n=>n&&n.type==='contract').slice(0,12),...nodes.filter(n=>n&&n.type==='party').slice(0,6),...nodes.filter(n=>n&&n.type==='clause').slice(0,12)];
+  const selectedNodes=visibleNodes.length?visibleNodes:nodes.slice(0,28);
+  selectedNodes.forEach(n=>{if(!n||typeof n!=='object')return;const key=String(n.id||n.document_id||n.label||n.name||'');if(!key)return;nodeObjects.push({key,label:String(n.label||n.name||n.document_id||key),type:String(n.type||'contract'),data:n,index:nodeObjects.length});});
+  const known=new Set(nodeObjects.map(n=>n.key));
+  const visibleEdges=edges.filter(e=>known.has(String(e.source))&&known.has(String(e.target)));
+  const canvas=graphHost.querySelector('canvas'),empty=graphHost.querySelector('.fr9-graph-empty');
+  if(canvas&&nodeObjects.length){
+   empty?.classList.add('hidden');canvas.classList.remove('hidden');
+   const ctx=canvas.getContext('2d');let rotY=0,rotX=.18,zoom=1,drag=false,px=0,py=0,hovered=null,selected=null;
+   const count=nodeObjects.length;
+   nodeObjects.forEach((n,i)=>{const y=1-2*(i+.5)/count;n.phi=Math.acos(Math.max(-1,Math.min(1,y)));n.theta=Math.PI*(1+Math.sqrt(5))*i;n.sx=Math.sin(n.phi)*Math.cos(n.theta);n.sy=Math.cos(n.phi);n.sz=Math.sin(n.phi)*Math.sin(n.theta);nodeIndex.set(n.key,i);});
+   function project(n,w,h){let x=n.sx,y=n.sy,z=n.sz;const cy=Math.cos(rotY),sy=Math.sin(rotY),cx=Math.cos(rotX),sx=Math.sin(rotX);const rx=x*cy-z*sy,rz=x*sy+z*cy,ry=y*cx-rz*sx,rz2=y*sx+rz*cx;const perspective=1/(1.9-rz2*.65);return {...n,x:w/2+rx*Math.min(w*.36,h*.72)*zoom*perspective,y:h/2+ry*Math.min(w*.30,h*.58)*zoom*perspective,z:rz2,scale:perspective};}
+   function nodeDetail(n){const related=edges.filter(e=>String(e.source)===n.key||String(e.target)===n.key);const source=n.data.citation||n.data.evidence||{};const evidence=source.quote||related.map(e=>e.evidence?.quote).filter(Boolean).slice(0,2).join(' | ');return n.label+' · '+n.type+(n.data.contract_id?' · Contract '+n.data.contract_id:'')+(n.data.category?' · '+n.data.category:'')+'\nRelationships: '+related.length+(related.length?'\n'+related.slice(0,5).map(e=>String(e.relation||'relationship').replaceAll('_',' ')+' → '+(String(e.source)===n.key?e.target:e.source)).join('\n'):'')+(evidence?'\nEvidence: '+evidence:'')+(source.verified===true?'\nCitation: verified':'\nCitation: check source evidence');}
+   function draw(){const w=canvas.clientWidth||1000,h=canvas.clientHeight||440,dpr=window.devicePixelRatio||1;canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);ctx.clearRect(0,0,w,h);const p=nodeObjects.map(n=>project(n,w,h));const edgeRows=visibleEdges.slice(0,100);
+    edgeRows.forEach(e=>{const a=nodeIndex.get(String(e.source)),b=nodeIndex.get(String(e.target));if(a===undefined||b===undefined)return;ctx.beginPath();ctx.moveTo(p[a].x,p[a].y);ctx.lineTo(p[b].x,p[b].y);const conflict=/conflict|contradict/i.test(String(e.relation||''));ctx.strokeStyle=conflict?'#bb7770':'#9da98d';ctx.globalAlpha=.35+Math.max(0,(p[a].z+p[b].z+2)/4)*.55;ctx.lineWidth=1.2+Math.max(0,(p[a].z+p[b].z+2)/4);ctx.stroke();ctx.globalAlpha=1;
+     if(selected&&(String(e.source)===selected.key||String(e.target)===selected.key)){ctx.fillStyle='#586c49';ctx.font='11px system-ui';ctx.textAlign='center';ctx.fillText(String(e.relation||'related').replaceAll('_',' '),(p[a].x+p[b].x)/2,(p[a].y+p[b].y)/2-5);}
+    });
+    [...p].sort((a,b)=>a.z-b.z).forEach(n=>{const radius=Math.max(.65,n.scale),ww=136*radius,hh=42*radius;ctx.beginPath();ctx.roundRect(n.x-ww/2,n.y-hh/2,ww,hh,10*radius);ctx.fillStyle=n.key===selected?.key?'#e2ead8':n.type==='clause'?'#f7eedb':n.type==='party'?'#e8efdf':'#fff';ctx.fill();ctx.strokeStyle=n.key===hovered?.key?'#748a61':'#cbd2c2';ctx.lineWidth=n.key===selected?.key?2.5:1.2;ctx.stroke();ctx.fillStyle='#22261e';ctx.font=(12*radius)+'px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';const label=n.label.length>21?n.label.slice(0,20)+'…':n.label;ctx.fillText(label,n.x,n.y);n.hitWidth=ww/2+4;n.hitHeight=hh/2+4;});
+    canvas._points=p;canvas._size={w,h};
+   }
+   function pick(e){const r=canvas.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;return [...(canvas._points||[])].reverse().find(n=>Math.abs(n.x-x)<(n.hitWidth||72)&&Math.abs(n.y-y)<(n.hitHeight||25))||null;}
+   if(!canvas.dataset.bound){canvas.dataset.bound='1';canvas.addEventListener('pointerdown',e=>{drag=true;px=e.clientX;py=e.clientY;canvas.setPointerCapture(e.pointerId)});canvas.addEventListener('pointermove',e=>{if(drag){rotY+=(e.clientX-px)*.007;rotX=Math.max(-1.35,Math.min(1.35,rotX+(e.clientY-py)*.005));px=e.clientX;py=e.clientY;draw();return;}const n=pick(e);if(n?.key!==hovered?.key){hovered=n;draw();}canvas.style.cursor=n?'pointer': 'grab';canvas.title=n?nodeDetail(n):'Drag to rotate in 3D; scroll to zoom; hover a node for details.'});canvas.addEventListener('pointerup',()=>drag=false);canvas.addEventListener('pointercancel',()=>drag=false);canvas.addEventListener('wheel',e=>{e.preventDefault();zoom=Math.max(.55,Math.min(2.6,zoom*(e.deltaY<0?1.1:.9)));draw()},{passive:false});canvas.addEventListener('click',e=>{const n=pick(e);if(!n)return;selected=n;hovered=n;const box=$('fr9GraphDetails');if(box)box.textContent=nodeDetail(n);draw();});}
+   draw();const leg=$('fr9GraphLegend');if(leg)leg.innerHTML='<span>● Contract</span><span>● Clause</span><span>● Party</span><span>— Evidence-backed relationship</span><span>— Potential conflict (review)</span>';
+  }else{canvas?.classList.add('hidden');empty?.classList.remove('hidden');}
+  const edgeList=$('fr9GraphEdges');if(edgeList)edgeList.innerHTML=visibleEdges.slice(0,18).map(e=>'<div class="graph-edge-row"><b>'+esc(e.source)+' → '+esc(e.target)+'</b><span>'+esc(String(e.relation||e.status||'relationship').replaceAll('_',' '))+'</span><p>'+esc(e.evidence?.quote||'No quoted evidence returned')+'</p><small>'+esc(e.evidence?.document_id||'')+' · line '+esc(e.evidence?.line_number??'—')+' · '+(e.evidence?.verified?'verified':'review required')+'</small></div>').join('')||'<p class="small">No sourced graph edges returned; Odin will not invent dependencies.</p>';
+ }
+ const timeText=$('fr9TimeValue');if(timeText)timeText.textContent=current;
+}
+
+function renderOdinOrchestrator(d){
+ const collaboration=d.collaboration||{},usage=d.api_usage||{},workstreams=d.workstreams||d.workstream_analysis?.workstreams||[],messages=d.agent_messages||[],shared=d.shared_state||{};
+ const completed=workstreams.filter(w=>/complete|verified|done/i.test(String(w.status||''))).length;
+ const agents=collaboration.agents||shared.agent_status||{};
+ const loop=collaboration.loop||{};
+ const runId=(d.audit||{}).run_id||d.run_id||'current run';
+ const el=id=>$(id);
+ if(!el('odinOrchestratorPanel'))return;
+ el('orchRunStatus').textContent=String(d.status||'run returned').replaceAll('_',' ');
+ el('orchRunMeta').textContent='Run · '+runId+' · '+(d.as_of_date||$('date')?.value||'');
+ el('orchStats').innerHTML=[['Workstreams',workstreams.length],['Completed / verified',completed],['Agents recorded',Object.keys(agents).length||new Set(messages.flatMap(m=>[m.from,m.to]).filter(Boolean)).size],['Follow-up iterations',(usage.iterations_used??loop.iterations_used??0)+' / '+(usage.max_iterations??loop.max_iterations??0)]].map(([a,b])=>'<div><span>'+esc(a)+'</span><b>'+esc(b)+'</b></div>').join('');
+ const fr=[
+  {id:'FR1.1',title:'Input · company context + contracts',status:'partial',evidence:'The configured Quillhub pack remains the full orchestration path. A multi-file TXT intake and POST /api/analyze-portfolio now accept company context and a contract set, but that custom path is conservative single-pass triage and is not yet the same full agentic event/payment workflow.'},
+  {id:'FR1.2',title:'Planning · one stream per contract + cross-contract',status:workstreams.length>0?'implemented':'partial',evidence:workstreams.length+' workstreams returned. The run builder creates source-specific contract streams and portfolio-wide relationship/shared-risk analysis; verify the returned stream labels below.'},
+  {id:'FR1.3',title:'Delegation · assign tasks + track status',status:(Object.keys(agents).length||messages.length)?'implemented':'partial',evidence:'Agent assignments, workstream statuses, handoff messages and shared-state agent records are exposed for this run. Status quality is limited to what each worker reports.'},
+  {id:'FR1.4',title:'Coordination · clarification/debate + completion + synthesis',status:'partial',evidence:'A bounded evidence-follow-up/verification loop and final ruling/synthesis are present. A distinct multi-agent debate loop and explicit per-contract completion gate are not clearly represented as separate mechanisms yet.'}
+ ];
+ el('orchFRList').innerHTML=fr.map(f=>'<div class="orch-fr"><div class="orch-fr-top"><b>'+esc(f.id)+' · '+esc(f.title)+'</b><span class="orch-status '+f.status+'">'+esc(f.status)+'</span></div><p>'+esc(f.evidence)+'</p></div>').join('');
+ el('orchWorkstreams').innerHTML=workstreams.map(w=>{const status=String(w.status||'status not reported'),contracts=(w.contract_ids||[]).join(', '),assigned=w.assigned_agents||[],isDone=/complete|verified|done/i.test(status),isRunning=/running|progress/i.test(status),pct=isDone?100:isRunning?60:35;return '<div class="orch-ws"><div class="orch-ws-top"><b>'+esc(w.label||w.id||'Workstream')+'</b><span class="orch-status '+(isDone?'':isRunning?'partial':'')+'">'+esc(status)+'</span></div><p>'+esc(w.responsibility||'Contract-specific analysis and evidence review')+'</p><div class="bar"><span style="width:'+pct+'%"></span></div><div class="meta">Contracts: '+esc(contracts||'Portfolio-wide')+'</div><div class="meta">Assigned: '+esc(assigned.join(' · ')||'Not reported')+'</div></div>'}).join('')||'<p class="small">The API returned no workstreams.</p>';
+ el('orchTrace').innerHTML=messages.map(m=>'<div class="orch-event"><b>'+esc((m.from||'Odin')+' → '+(m.to||'System'))+'</b><span>'+esc(String(m.type||'handoff').replaceAll('_',' '))+'</span><small>'+esc(m.status||'recorded')+(m.iteration!==undefined?' · iteration '+m.iteration:'')+'</small></div>').join('')||'<p class="small">No agent messages returned.</p>';
+}
+
+function updateOverviewAndGraph(){
+  const textOf=id=>$(id)?.innerText||'';
+  const contractText=textOf('explorerCount').match(/\d+/);
+  if($('homeContracts'))$('homeContracts').textContent=contractText?contractText[0]:'—';
+  const riskText=textOf('heatmapStatus').match(/\d+/);
+  if($('homeRisks'))$('homeRisks').textContent=riskText?riskText[0]:(($('riskHeatmap')?.children.length)||0);
+  const deadlines=(($('opsMilestones')?.querySelectorAll('.agent,.milestone,li')||[]).length);
+  if($('homeDeadlines'))$('homeDeadlines').textContent=deadlines||(($('timeline')?.children.length)||0)||'—';
+  const reviews=(($('decisionQueueItems')?.children.length)||0)+(($('reviewItems')?.children.length)||0);
+  if($('homeReview'))$('homeReview').textContent=reviews||'0';
+  const host=$('homeGraph');if(!host)return;
+  const isContractId=value=>/^(?:[A-Z]\d+|STD)$/i.test(String(value||'').trim());
+  const clean=value=>String(value||'').trim();
+  const edgeCards=[...($('graphEdges')?.querySelectorAll(':scope > .agent')||[])];
+  const allEdges=edgeCards.map(card=>{
+    const title=card.querySelector('b')?.textContent||'';
+    const m=title.match(/^(.+?)\s*→\s*(.+)$/);
+    return m?{source:clean(m[1]),target:clean(m[2]),label:(card.querySelector('p')?.textContent||'Relationship evidence').trim(),quote:(card.querySelector('blockquote')?.textContent||'No quoted evidence available').trim(),meta:(card.querySelector('.meta')?.textContent||'').trim()}:null;
+  }).filter(Boolean);
+  // The portfolio view is document-level only. Clause IDs remain in the evidence views,
+  // but are intentionally not promoted to first-class contract nodes.
+  const edges=allEdges.filter(e=>isContractId(e.source)&&isContractId(e.target)&&e.source!==e.target);
+  if(!edges.length){
+    host.innerHTML='<div class="graph-empty"><b>No direct, sourced contract-to-contract links yet</b><span>Clause-level references remain available in contract evidence. Odin only draws a portfolio connection when both endpoints are contract documents and the backend supplies a sourced relationship.</span></div>';
+    return;
+  }
+  const names=[...new Set(edges.flatMap(e=>[e.source,e.target]))].sort((a,b)=>a.localeCompare(b));
+  const count=Math.min(names.length,24);
+  const visibleNames=names.slice(0,count);
+  const nodes=visibleNames.map((name,i)=>{const a=(i/Math.max(1,count))*Math.PI*2;const radius=count<=4?115:Math.min(230,80+count*5);return {name,x:Math.cos(a)*radius,y:Math.sin(a)*radius*.62,z:Math.sin(a*2)*75}});
+  const visibleEdges=edges.filter(e=>visibleNames.includes(e.source)&&visibleNames.includes(e.target));
+  host.innerHTML='<div class="graph-toolbar"><span><b>'+visibleNames.length+'</b> contract documents · <b>'+visibleEdges.length+'</b> sourced document links</span><div><button type="button" data-pan="up" aria-label="Move graph up">↑</button><button type="button" data-pan="down" aria-label="Move graph down">↓</button><button type="button" data-pan="left" aria-label="Move graph left">←</button><button type="button" data-pan="right" aria-label="Move graph right">→</button><button type="button" data-zoom="out" aria-label="Zoom out">−</button><button type="button" data-zoom="reset">Fit / Reset</button><button type="button" data-zoom="in" aria-label="Zoom in">+</button></div></div><div class="graph-stage" tabindex="0" aria-label="Interactive contract relationship graph. Drag to rotate, scroll to zoom, hover a contract for details."><canvas class="relationship-canvas"></canvas><div class="graph-tip" role="status">Drag to rotate · Shift/right-drag or arrows to pan · scroll to zoom</div><div class="graph-detail hidden"></div></div><p class="graph-footnote">Only direct, evidence-backed document relationships are drawn here. Clause references and quotations remain in the contract evidence panels; a relationship does not establish legal liability.</p>';
+  const stage=host.querySelector('.graph-stage'),canvas=host.querySelector('canvas'),ctx=canvas.getContext('2d'),detail=host.querySelector('.graph-detail');
+  let yaw=-.35,pitch=.12,zoom=1,panX=0,panY=0,dragging=false,panning=false,lastX=0,lastY=0,hovered=-1;
+  const resize=()=>{const rect=stage.getBoundingClientRect(),dpr=Math.min(window.devicePixelRatio||1,2);canvas.width=Math.max(1,rect.width*dpr);canvas.height=Math.max(1,rect.height*dpr);canvas.style.width=rect.width+'px';canvas.style.height=rect.height+'px';ctx.setTransform(dpr,0,0,dpr,0,0);draw()};
+  function project(n,w,h){const cy=Math.cos(yaw),sy=Math.sin(yaw),cp=Math.cos(pitch),sp=Math.sin(pitch);const x=n.x*cy-n.z*sy,z=n.x*sy+n.z*cy,y=n.y*cp-z*sp,zz=n.y*sp+z*cp;const f=650/(650+zz);return {x:w/2+x*f*zoom+panX,y:h/2+y*f*zoom+panY,z:zz,scale:f*zoom}}
+  function draw(){
+    const w=canvas.clientWidth||stage.clientWidth,h=canvas.clientHeight||stage.clientHeight;if(!w||!h)return;
+    ctx.clearRect(0,0,w,h);
+    const pts=nodes.map(n=>project(n,w,h)),lines=visibleEdges.map(e=>({e,a:visibleNames.indexOf(e.source),b:visibleNames.indexOf(e.target)})).filter(l=>l.a>=0&&l.b>=0).sort((a,b)=>(pts[a.a].z+pts[a.b].z)-(pts[b.a].z+pts[b.b].z));
+    lines.forEach(({e,a,b})=>{const p=pts[a],q=pts[b];ctx.beginPath();ctx.moveTo(p.x,p.y);ctx.lineTo(q.x,q.y);ctx.strokeStyle='rgba(129,145,111,.72)';ctx.lineWidth=1.8;ctx.stroke();const mx=(p.x+q.x)/2,my=(p.y+q.y)/2;const label=e.label.length>34?e.label.slice(0,33)+'…':e.label;ctx.save();ctx.font='600 11px system-ui';const tw=Math.min(ctx.measureText(label).width+14,Math.max(70,w*.32));ctx.fillStyle='rgba(247,248,243,.97)';ctx.beginPath();ctx.roundRect(mx-tw/2,my-12,tw,22,7);ctx.fill();ctx.strokeStyle='#dfe3d7';ctx.lineWidth=1;ctx.stroke();ctx.fillStyle='#414a37';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(label,mx,my-1,tw-10);ctx.restore()});
+    pts.map((p,i)=>({p,i})).sort((a,b)=>a.p.z-b.p.z).forEach(({p,i})=>{const radius=Math.max(24,Math.min(38,30*p.scale));ctx.save();ctx.shadowColor='rgba(35,45,25,.13)';ctx.shadowBlur=i===hovered?18:8;ctx.shadowOffsetY=4;ctx.beginPath();ctx.roundRect(p.x-radius*1.55,p.y-radius*.68,radius*3.1,radius*1.36,13);ctx.fillStyle=i===hovered?'#e8efdf':'#ffffff';ctx.fill();ctx.shadowColor='transparent';ctx.lineWidth=i===hovered?2.5:1.3;ctx.strokeStyle=i===hovered?'#81916f':'#cbd0c2';ctx.stroke();ctx.fillStyle='#151813';ctx.font='700 '+Math.max(15,Math.min(19,17*p.scale))+'px system-ui';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(nodes[i].name,p.x,p.y);ctx.restore()});
+  }
+  function hit(x,y){const w=canvas.clientWidth,h=canvas.clientHeight;let best=-1,dist=Infinity;nodes.forEach((n,i)=>{const p=project(n,w,h),d=Math.hypot(x-p.x,y-p.y);if(d<Math.max(34,38*p.scale)&&d<dist){best=i;dist=d}});return best}
+  function showDetail(i,x=12,y=12){hovered=i;draw();if(i<0){detail.classList.add('hidden');return}const name=visibleNames[i],related=visibleEdges.filter(e=>e.source===name||e.target===name);detail.innerHTML='<button class="graph-detail-close" type="button" aria-label="Close details">×</button><div class="graph-detail-kicker">CONTRACT DOCUMENT</div><h4>'+esc(name)+'</h4><p>'+related.length+' sourced direct relationship'+(related.length===1?'':'s')+' in this analysis</p>'+related.slice(0,6).map(e=>'<div class="graph-detail-edge"><b>'+esc(e.source)+' → '+esc(e.target)+'</b><span>'+esc(e.label)+'</span><blockquote>'+esc(e.quote)+'</blockquote><small>'+esc(e.meta)+'</small></div>').join('')+'<button class="graph-open-contract" type="button">Open contract evidence ↗</button>';detail.classList.remove('hidden');detail.style.left=Math.max(12,Math.min((canvas.clientWidth||stage.clientWidth)-330,x+18))+'px';detail.style.top=Math.max(12,Math.min((canvas.clientHeight||stage.clientHeight)-220,y+12))+'px';detail.querySelector('.graph-detail-close').onclick=()=>showDetail(-1);detail.querySelector('.graph-open-contract').onclick=()=>window.odinShowPage?.('contracts')}
+  canvas.addEventListener('contextmenu',e=>e.preventDefault());canvas.addEventListener('pointerdown',e=>{panning=e.button===2||e.shiftKey;dragging=!panning;lastX=e.clientX;lastY=e.clientY;canvas.setPointerCapture(e.pointerId);canvas.classList.add('dragging')});
+  canvas.addEventListener('pointermove',e=>{const r=canvas.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top;if(dragging||panning){const dx=e.clientX-lastX,dy=e.clientY-lastY;if(panning){panX=Math.max(-canvas.clientWidth,Math.min(canvas.clientWidth,panX+dx));panY=Math.max(-canvas.clientHeight,Math.min(canvas.clientHeight,panY+dy))}else{yaw+=dx*.009;pitch=Math.max(-1.15,Math.min(1.15,pitch+dy*.007))}lastX=e.clientX;lastY=e.clientY;draw();return}const i=hit(x,y);canvas.style.cursor=i>=0?'pointer':'grab';if(i!==hovered){if(i>=0)showDetail(i,x,y);else{hovered=-1;draw();detail.classList.add('hidden')}}});
+  canvas.addEventListener('pointerup',()=>{dragging=false;panning=false;canvas.classList.remove('dragging')});canvas.addEventListener('pointercancel',()=>{dragging=false;panning=false;canvas.classList.remove('dragging')});
+  canvas.addEventListener('wheel',e=>{e.preventDefault();zoom=Math.max(.45,Math.min(1.75,zoom*(e.deltaY<0?1.08:.92)));draw()},{passive:false});
+  canvas.addEventListener('click',e=>{if(dragging)return;const r=canvas.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top,i=hit(x,y);if(i>=0)showDetail(i,x,y)});
+  host.querySelectorAll('[data-zoom]').forEach(b=>b.addEventListener('click',()=>{if(b.dataset.zoom==='in')zoom=Math.min(1.75,zoom*1.15);else if(b.dataset.zoom==='out')zoom=Math.max(.45,zoom/1.15);else{yaw=-.35;pitch=.12;zoom=1;panX=0;panY=0}draw()}));
+  host.querySelectorAll('[data-pan]').forEach(b=>b.addEventListener('click',()=>{const step=70;if(b.dataset.pan==='up')panY+=step;if(b.dataset.pan==='down')panY-=step;if(b.dataset.pan==='left')panX+=step;if(b.dataset.pan==='right')panX-=step;panX=Math.max(-canvas.clientWidth,Math.min(canvas.clientWidth,panX));panY=Math.max(-canvas.clientHeight,Math.min(canvas.clientHeight,panY));draw()}));
+  if('ResizeObserver'in window)new ResizeObserver(resize).observe(stage);else window.addEventListener('resize',resize);resize();
+}
+function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+
+let currentAuditRunId = null;
+
+function setReviewActions(actions) {
+  const select = $('reviewActionId');
+  if (!select) return;
+  const unique = new Map();
+  (actions || []).forEach(action => {
+    if (!action || typeof action !== 'object') return;
+    const id = String(action.action_id || action.id || 'recommended-action');
+    if (!unique.has(id)) {
+      const contract = action.contract_id || action.document_id || 'Portfolio';
+      const label = action.subject || action.title || action.type || 'Draft action';
+      unique.set(id, contract + ' — ' + label);
+    }
+  });
+  if (!unique.size) unique.set('recommended-action', 'Primary run action');
+  select.innerHTML = Array.from(unique.entries()).map(([id, label]) =>
+    '<option value="' + esc(id) + '">' + esc(label) + '</option>'
+  ).join('');
+}
+
+async function refreshAuditHistory(selectedRunId) {
+  const box = $('auditHistory');
+  try {
+    const data = await get('/api/audit/runs?limit=20');
+    const runs = data.runs || [];
+    $('auditHistoryCount').textContent = runs.length + ' saved runs';
+    box.innerHTML = runs.map(run =>
+      '<div class="agent"><b>' + esc(run.run_id) + '</b><p>' + esc(run.created_at) +
+      ' · as of ' + esc(run.as_of_date || 'unknown') + ' · ' + esc(run.status || 'unknown') +
+      '</p><p class="small">Input fingerprint: ' + esc((run.input_fingerprint || '').slice(0,16)) +
+      '…</p><button type="button" data-audit-run="' + esc(run.run_id) + '">Inspect history</button></div>'
+    ).join('') || '<p class="small">No saved runs yet. Run Odin to create the first audit snapshot.</p>';
+    box.querySelectorAll('[data-audit-run]').forEach(button => button.addEventListener('click', () => inspectAuditRun(button.dataset.auditRun)));
+    if (selectedRunId) $('approvalRunLabel').textContent = 'Current run: ' + selectedRunId;
+  } catch (error) {
+    $('auditHistoryCount').textContent = 'Audit unavailable';
+    box.innerHTML = '<p class="small">Could not load persistent audit history: ' + esc(error.message) + '</p>';
+  }
+}
+
+async function inspectAuditRun(runId) {
+  try {
+    const record = await get('/api/audit/runs/' + encodeURIComponent(runId));
+    currentAuditRunId = runId;
+    const payload = record.payload || {};
+    const actionItems = [];
+    const addAction = action => {
+      if (action && typeof action === 'object') actionItems.push(action);
+    };
+    addAction(payload.action_draft);
+    addAction((payload.ruling || {}).action_draft);
+    (payload.recommended_actions || []).forEach(addAction);
+    ((payload.shared_state || {}).recommended_actions || []).forEach(addAction);
+    (payload.contract_reports || []).forEach(report =>
+      (report.recommended_actions || []).forEach(action => addAction({...action, contract_id: action.contract_id || report.contract_id}))
+    );
+    (((payload.company_risk_report || {}).contract_reports) || []).forEach(report =>
+      (report.recommended_actions || []).forEach(action => addAction({...action, contract_id: action.contract_id || report.contract_id}))
+    );
+    setReviewActions(actionItems);
+    $('approvalRunLabel').textContent = 'Current run: ' + runId;
+    const events = record.events || [];
+    $('auditSelectedEvents').innerHTML = '<h4>Audit events · ' + esc(runId) + '</h4>' +
+      (events.map(event => '<div class="agent"><b>' + esc(event.event_type.replaceAll('_',' ')) +
+      '</b><p>' + esc(event.occurred_at) + ' · ' + esc(event.actor) + '</p><details><summary>View event details</summary><pre>' +
+      esc(JSON.stringify(event.details, null, 2)) + '</pre></details></div>').join('') ||
+      '<p class="small">No audit events were recorded for this run.</p>') +
+      '<h4>Human decisions</h4>' + ((record.decisions || []).map(decision =>
+      '<div class="agent"><b>' + esc(decision.decision.toUpperCase()) + '</b><p>' +
+      esc(decision.reviewer) + ' · ' + esc(decision.decided_at) + '</p><p>' + esc(decision.note || 'No note supplied') +
+      '</p><p class="small">Action executed: no</p></div>').join('') ||
+      '<p class="small">No human decision has been recorded for this run.</p>');
+  } catch (error) {
+    $('auditSelectedEvents').innerHTML = '<p class="small">Unable to load audit details: ' + esc(error.message) + '</p>';
+  }
+}
+
+async function submitAuditDecision(decision) {
+  if (!currentAuditRunId) { $('approvalResult').textContent = 'Run Odin first so the decision can be attached to a saved run.'; return; }
+  const reviewer = $('reviewerName').value.trim();
+  if (!reviewer) { $('approvalResult').textContent = 'Enter a reviewer name or team before recording a decision.'; return; }
+  const buttons = [$('approveAction'), $('rejectAction')];
+  buttons.forEach(button => button.disabled = true);
+  try {
+    const response = await fetch('/api/audit/runs/' + encodeURIComponent(currentAuditRunId) + '/decision', {
+      method: 'POST', headers: apiHeaders({'Content-Type':'application/json'}),
+      body: JSON.stringify({action_id:$('reviewActionId')?.value || 'recommended-action', decision, reviewer, note:$('reviewNote').value.trim()})
+    });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.detail || 'Decision could not be recorded');
+    $('approvalResult').textContent = decision.toUpperCase() + ' recorded for action ' + result.action_id + ' by ' + result.reviewer +
+      ' at ' + result.decided_at + '. No consequential action was executed.';
+    await inspectAuditRun(currentAuditRunId);
+    await refreshAuditHistory(currentAuditRunId);
+  } catch (error) {
+    $('approvalResult').textContent = 'Decision not recorded: ' + error.message;
+  } finally {
+    buttons.forEach(button => button.disabled = false);
+  }
+}
+
+async function runOdin() {
+  const button = $('run');
+  button.disabled = true;
+  $('loading').classList.remove('hidden');
+  $('dash').classList.add('hidden');
+  $('loading').textContent = 'Odin → Thor → Norns → Loki → Heimdall → Tyr';
+
+  try {
+    const d = await get('/api/run?as_of=' + encodeURIComponent($('date').value) + '&use_claude=true');
+    const x = d.extraction || {};
+    const f = d.risk_finding || {};
+    const v = d.verification || {};
+    const r = d.ruling || {};
+    const portfolio = d.portfolio_extraction || {};
+    const docs = portfolio.contracts || {};
+    const wa = d.workstream_analysis || {};
+    const workstreams = wa.workstreams || [];
+    renderOdinOrchestrator(d);
+    renderOdinDashboardFR9(d);
+
+    // Phase 6 portfolio overview, explorer, heatmap, and event/audit timeline.
+    const contractIds = Object.keys(docs);
+    const p6Ops = d.portfolio_operations || {};
+    const p6OpsTimeline = p6Ops.timeline || {};
+    const p6OpsCounts = p6OpsTimeline.counts || {};
+    const p6Finance = p6Ops.financial_reconciliation || {};
+    const p6FinanceCounts = p6Finance.counts || {};
+    const p6Queue = d.decision_queue || {};
+    const p6QueueCounts = p6Queue.counts || {};
+    const p6Graph = d.contract_graph || {};
+    const p6Reconciliation = d.contract_reconciliation || {};
+    const p6Grounded = d.evidence_grounded_finding || {};
+    const p6Loop = (d.collaboration || {}).loop || {};
+    const p6Timeline = d.timeline || {};
+    const milestones = p6OpsTimeline.milestones || p6Timeline.milestones || [];
+    const allRisks = workstreams.flatMap(w => (w.risk_findings || []).map(risk => ({
+      ...risk, _workstream: w, _contract: (risk.contract_id || (w.contract_ids || [])[0] || 'Unresolved')
+    })));
+    const normalizePriority = item => String(
+      item.priority || item.severity || item.risk_level || item.level ||
+      item.urgency || item.priority_level || ''
+    ).trim().toLowerCase().replace(/[ _-]+/g, '');
+    const isHighPriority = item => ['high','critical','p1','urgent'].includes(normalizePriority(item));
+    const highRisks = allRisks.filter(isHighPriority);
+    // The decision queue schema exposes "issues" (not "items"). Merge both
+    // sources by stable ID first, then contract + normalized claim/title to avoid
+    // counting the same surfaced signal twice.
+    const queueIssues = Array.isArray(p6Queue.issues) ? p6Queue.issues :
+      (Array.isArray(p6Queue.items) ? p6Queue.items : []);
+    const highQueueIssues = queueIssues.filter(isHighPriority);
+    const highSignalKey = item => {
+      const stableId = item.finding_id || item.issue_id || item.id || item.risk_id;
+      if (stableId) return 'id:' + String(stableId).trim().toLowerCase();
+      const contract = String(item.contract_id || item._contract || (item._workstream?.contract_ids || [])[0] || '').trim().toLowerCase();
+      const claim = String(item.claim || item.title || item.description || item.category || item.summary || '')
+        .toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+      return contract + '|claim:' + claim;
+    };
+    const highPrioritySignals = new Map();
+    [...highRisks, ...highQueueIssues].forEach(item => {
+      const key = highSignalKey(item);
+      if (key !== '|claim:') highPrioritySignals.set(key, item);
+    });
+    const unresolvedConflictCount = (p6Graph.edges || []).filter(edge =>
+      /conflict|overlap|review/i.test(String(edge.status || '') + ' ' + String(edge.relation || ''))).length
+      + (p6Reconciliation.review_items || []).length;
+    const dueSoon = milestones.filter(item => /upcoming|due_today|overdue|due soon/i.test(String(item.status || '')));
+    $('portfolioStatus').textContent = contractIds.length + ' source documents · ' + workstreams.length + ' workstreams';
+    $('portfolioOverview').innerHTML = [
+      ['Contracts scanned', contractIds.length, 'Source documents present in the portfolio extraction'],
+      ['Contracts analyzed', new Set(workstreams.flatMap(w => w.contract_ids || [])).size, 'Distinct contract IDs represented in workstreams'],
+      ['High-priority signals', highPrioritySignals.size, highPrioritySignals.size ? 'Distinct high/critical signals from workstreams and the decision queue' : (allRisks.length || queueIssues.length ? 'No classified high-priority risks; inspect unclassified signals below' : 'No risk signals were returned by the API')],
+      ['Upcoming / action dates', (p6OpsCounts.upcoming || 0) + (p6OpsCounts.due_today || 0) + (p6OpsCounts.overdue || 0), 'Actionable upcoming, due-today, and overdue dates from the timeline engine'],
+      ['Potential exposure', 'Not calculated', 'No unsupported portfolio-wide financial total is inferred'],
+      ['Unresolved review items', unresolvedConflictCount, 'Relationship/reconciliation items needing review']
+    ].map(([label,value,note]) => '<div class="agent"><b>' + esc(label) + '</b><div class="value">' + esc(value) +
+      '</div><p>' + esc(note) + '</p></div>').join('');
+
+    $('explorerCount').textContent = contractIds.length + ' documents · ' + (p6Graph.edge_count || 0) + ' relationship links';
+    $('contractExplorer').innerHTML = contractIds.map(id => {
+      const item = docs[id] || {};
+      const terms = item.extracted_terms || [];
+      const linkedEdges = (p6Graph.edges || []).filter(edge => edge.source === id || edge.target === id);
+      const ws = workstreams.filter(w => (w.contract_ids || []).includes(id));
+      const verified = terms.filter(term => term.citation && term.citation.verified).length;
+      const related = [...new Set(linkedEdges.map(edge => edge.source === id ? edge.target : edge.source))];
+      const obligations = ws.reduce((n,w) => n + (w.extracted_obligations || []).length, 0);
+      return '<div class="agent contract-explorer-card"><b>' + esc(id) + '</b><p>' +
+        esc(item.document_type || item.title || 'Loaded source document') + '</p><div class="flow">' +
+        '<span class="tag">' + terms.length + ' source lines</span><span class="tag">' + verified + ' verified quotes</span>' +
+        '<span class="tag">' + linkedEdges.length + ' links</span><span class="tag">' + obligations + ' candidate obligations</span></div>' +
+        '<p class="small">Related documents: ' + esc(related.join(', ') || 'No explicit p6Graph links detected') + '</p>' +
+        '<details><summary>Incorporated documents and source terms</summary><p>' +
+        esc(related.join(' · ') || 'No incorporated-document relationship was detected for this node.') +
+        '</p>' + terms.slice(0,6).map(term => '<div class="evidence"><b>' + esc(term.category || 'Extracted term') +
+        '</b><div class="meta">' + esc(term.citation?.clause_reference || '') + ' · ' +
+        (term.citation?.verified ? 'VERIFIED' : 'REVIEW') + '</div><blockquote>' +
+        esc(term.citation?.quote || '') + '</blockquote><p>' + esc(term.value || '') + '</p></div>').join('') +
+        '</details><button type="button" class="jump-contract" data-contract="' + esc(id) + '">Open workstream details ↓</button></div>';
+    }).join('') || '<p class="small">No contract documents returned by portfolio extraction.</p>';
+    document.querySelectorAll('.jump-contract').forEach(button => button.addEventListener('click', () => {
+      const id = button.dataset.contract;
+      const target = [...document.querySelectorAll('#workstreamCards .agent')].find(card => card.textContent.includes(id));
+      (target || $('workstreamCards')).scrollIntoView({behavior:'smooth',block:'start'});
+      if(target) { target.style.outline = '2px solid var(--cyan)'; setTimeout(() => target.style.outline = '', 1800); }
+    }));
+
+    $('heatmapStatus').textContent = (allRisks.length + queueIssues.length) + ' signals · ' + unresolvedConflictCount + ' review items';
+    $('riskHeatmap').innerHTML = workstreams.map(w => {
+      const risks = w.risk_findings || [];
+      const open = w.unresolved_questions || [];
+      const counts = risks.reduce((acc,item) => {
+        const level = String(item.severity || item.priority || 'unclassified').toLowerCase();
+        acc[level] = (acc[level] || 0) + 1; return acc;
+      }, {});
+      const countHtml = Object.entries(counts).map(([level,count]) =>
+        '<span class="tag heat-' + esc(level.replace(/[^a-z0-9_-]/g,'')) + '">' + esc(level) + ': ' + count + '</span>'
+      ).join('');
+      return '<div class="agent"><b>' + esc(w.label || w.id || 'Workstream') + '</b><p>' +
+        esc((w.contract_ids || []).join(', ')) + '</p><div class="flow">' +
+        (countHtml || '<span class="tag">No severity-labelled risks returned</span>') +
+        '<span class="tag">' + risks.length + ' signals</span><span class="tag">' + open.length + ' open questions</span></div>' +
+        risks.slice(0,4).map(item => '<div class="evidence"><b>' + esc(item.severity || item.priority || 'Severity not classified') +
+        ' · ' + esc(item.title || item.claim || item.category || 'Risk signal') + '</b><p>' +
+        esc(item.claim || item.description || '') + '</p><div class="meta">Evidence: ' +
+        esc(item.evidence?.document_id || item.contract_id || 'Source not resolved') + ' · ' +
+        (item.evidence?.verified ? 'verified quote' : 'verification not confirmed') + '</div></div>').join('') +
+        (open.length ? '<p class="small">Outstanding: ' + esc(open.slice(0,5).join(' · ')) + '</p>' : '') +
+        '</div>';
+    }).join('') || '<p class="small">No workstream risk signals returned.</p>';
+
+    const auditItems = [
+      ...milestones.map(item => ({date:item.date || '', title:item.title || 'Portfolio milestone',
+        status:item.status || item.date_type || 'timeline', detail:(item.contract_id || '') + ' · ' + (item.classification_note || item.evidence?.quote || '')})),
+      ...(d.agent_messages || []).map((message,index) => ({date:'Run · ' + (message.iteration ?? index + 1),
+        title:(message.from || 'Agent') + ' · ' + (message.type || 'handoff'),
+        status:message.status || 'recorded', detail:message.summary || message.message || message.to || 'Agent handoff recorded'})),
+      {date:'Current run', title:'Finding: ' + (p6Grounded.claim || f.title || 'Risk review'),
+        status:p6Grounded.status || v.status || 'verification pending',
+        detail:'Breach proven: ' + (p6Grounded.breach_proven ? 'yes' : 'no') + ' · ' +
+          ((p6Grounded.missing_evidence || v.evidence_gaps || []).join('; ') || 'No missing evidence reported')},
+      {date:'Current run', title:'Follow-up p6Loop',
+        status:(d.collaboration || {}).loop_status || 'not reported',
+        detail:(p6Loop.stop_reason || (d.api_usage || {}).stop_reason || 'stop reason not reported') +
+          ' · iterations ' + (p6Loop.iterations_used ?? 0) + '/' + (p6Loop.max_iterations ?? 0)}
+    ].sort((a,b) => String(a.date).localeCompare(String(b.date)));
+    $('auditTimelineCount').textContent = auditItems.length + ' run events / milestones';
+    $('eventAuditTimeline').innerHTML = auditItems.slice(0,60).map(item =>
+      '<div class="milestone"><span class="date">' + esc(item.date || 'Undated') + '</span><b>' +
+      esc(item.title) + '<div class="meta">' + esc(item.detail || '') + '</div></b><span class="tag">' +
+      esc(item.status) + '</span></div>'
+    ).join('') || '<p class="small">No dated events or agent audit records were returned.</p>';
+
+    $('citeMetric').textContent = (x.citation_validation?.verified || 0) + '/' + (x.citation_validation?.total || 0);
+    $('terms').innerHTML = (x.extracted_terms || []).map(t =>
+      '<div class="agent"><b>' + esc((t.category || '').replaceAll('_', ' ')) +
+      '</b><p>' + esc(t.value || '') + '</p><div class="meta">' +
+      esc(t.citation?.document_id || '') + ' · ' + esc(t.citation?.clause_reference || '') +
+      ' · ' + (t.citation?.verified ? 'VERIFIED' : 'UNVERIFIED') + '</div></div>'
+    ).join('');
+
+    $('workstreamMetric').textContent = workstreams.length;
+    $('workstreamCount').textContent = (wa.scope || []).length + ' contracts · ' + workstreams.length + ' streams';
+    $('workstreamCards').innerHTML = workstreams.map(w => {
+      const deadlines = w.deadlines || [];
+      const risks = w.risk_findings || [];
+      const questions = w.unresolved_questions || [];
+      const verification = w.citation_verification || {};
+      const deadlineHtml = deadlines.slice(0, 8).map(m =>
+        '<div class="evidence"><b>' + esc(m.date || '') + ' · ' + esc(m.status || '') +
+        '</b><blockquote>' + esc(m.evidence?.quote || m.title || '') + '</blockquote></div>'
+      ).join('');
+      const riskHtml = risks.slice(0, 6).map(item =>
+        '<div class="evidence"><b>' + esc(item.title || item.signal_id || item.category || 'Review signal') +
+        '</b><p>' + esc(item.claim || item.description || '') +
+        '</p><blockquote>' + esc(item.evidence?.quote || '') + '</blockquote></div>'
+      ).join('');
+      return '<div class="agent"><b>' + esc(w.label || w.id || 'Workstream') +
+        '</b><p>' + esc(w.responsibility || '') + '</p><div class="meta">Contracts: ' +
+        esc((w.contract_ids || []).join(', ')) + ' · ' + esc(w.status || '') +
+        '</div><div class="flow"><span class="tag">' + (w.extracted_obligations || []).length +
+        ' candidate obligations</span><span class="tag">' + deadlines.length +
+        ' explicit dates</span><span class="tag">' + risks.length +
+        ' review signals</span></div><p class="small">Citations verified: ' +
+        esc(verification.verified || 0) + ' / ' + esc(verification.total || 0) +
+        '</p><details><summary>View obligations, deadlines, risks and open questions</summary>' +
+        deadlineHtml + riskHtml + '<p class="small">Open questions: ' +
+        esc(questions.join(' · ')) + '</p></details></div>';
+    }).join('');
+
+    const portfolioValidation = portfolio.citation_validation || {};
+    $('portfolioCount').textContent = (portfolio.documents_processed || 0) +
+      ' documents · ' + (portfolioValidation.verified || 0) + ' quotes verified';
+    $('portfolioTerms').innerHTML = Object.entries(docs).map(([id, item]) => {
+      const terms = item.extracted_terms || [];
+      const evidenceHtml = terms.slice(0, 5).map(t =>
+        '<div class="evidence"><b>' + esc((t.category || '').replaceAll('_', ' ')) +
+        '</b><blockquote>' + esc(t.citation?.quote || '') + '</blockquote></div>'
+      ).join('');
+      const verified = terms.filter(t => t.citation && t.citation.verified).length;
+      return '<div class="agent"><b>' + esc(id) + '</b><p>' + terms.length +
+        ' candidate lines</p><div class="meta">' + verified +
+        ' exact quotes verified</div><details><summary>View evidence</summary>' +
+        (evidenceHtml || '<p class="small">No lines matched current topic patterns.</p>') +
+        '</details></div>';
+    }).join('');
+
+    const graph = d.contract_graph || {};
+    const reconciliation = d.contract_reconciliation || {};
+    const edges = graph.edges || [];
+    const changes = reconciliation.resolved_changes || [];
+    const reviews = reconciliation.review_items || [];
+    $('graphCount').textContent = (graph.nodes || []).filter(n => n && (n.type === 'contract' || n.document_id && !n.type)).length + ' contracts · ' + (graph.edges || []).length + ' relationships';
+    $('graphEdges').innerHTML = edges.map(edge =>
+      '<div class="agent"><b>' + esc(edge.source || '') + ' → ' + esc(edge.target || '') +
+      '</b><p>' + esc((edge.relation || '').replaceAll('_', ' ')) + ' · ' +
+      esc((edge.status || '').replaceAll('_', ' ')) + '</p><blockquote>' +
+      esc(edge.evidence?.quote || 'No single-line evidence found') +
+      '</blockquote><div class="meta">' + esc(edge.evidence?.document_id || '') +
+      ' · line ' + esc(edge.evidence?.line_number ?? '—') + '</div></div>'
+    ).join('') || '<p class="small">No document relationships detected.</p>';
+
+    $('reconcileCount').textContent = changes.length + ' resolved · ' + reviews.length + ' review items';
+    $('resolvedChanges').innerHTML = changes.map(change =>
+      '<div class="agent"><b>' + esc((change.provision || '').replaceAll('_', ' ')) +
+      '</b><p>' + esc(change.target_document || '') + ': ' + esc(change.original_value || '') +
+      ' → <span class="good">' + esc(change.amended_value || '') +
+      '</span></p><div class="meta">Effective ' + esc(change.effective_date || 'date not resolved') +
+      ' · ' + esc((change.status || '').replaceAll('_', ' ')) + '</div>' +
+      (change.evidence || []).map(ev => '<blockquote>' + esc(ev.document_id || '') +
+        ': ' + esc(ev.quote || '') + '</blockquote>').join('') +
+      '<p class="small">Human review required.</p></div>'
+    ).join('') || '<p class="small">No explicit changes resolved.</p>';
+
+    $('reviewItems').innerHTML = reviews.map(item =>
+      '<div class="agent"><b>' + esc(item.section_heading || item.item_id || item.amendment_document || 'Review item') +
+      '</b><p>' + esc(item.summary || item.reason || 'Further review required.') +
+      '</p><blockquote>' + esc(item.evidence?.quote || '') +
+      '</blockquote><div class="meta">' + esc((item.status || '').replaceAll('_', ' ')) +
+      ' · Human review required</div></div>'
+    ).join('') || '<p class="small">No outstanding amendment review items.</p>';
+
+    $('riskMetric').textContent = (f.severity || 'review').toUpperCase();
+    $('agents').innerHTML = [
+      ['Odin', 'Orchestrates and tracks'], ['Thor', 'Extracts sourced terms'],
+      ['Norns', 'Computes timeline'], ['Loki', 'Challenges interpretations'],
+      ['Heimdall', 'Verifies event evidence'], ['Tyr', 'Rules and drafts action']
+    ].map(agent => '<div class="agent"><b>● ' + agent[0] + '</b><p>' + agent[1] + '</p></div>').join('');
+    $('flow').innerHTML = ['Plan', 'Extract', 'Validate citations', 'Timeline', 'Attack', 'Verify', 'Rule', 'Synthesize']
+      .map((step, index) => (index ? ' → ' : '') + '<span class="step">' + step + '</span>').join('');
+
+    $('riskTitle').textContent = f.title || 'No risk finding returned';
+    $('claim').textContent = f.claim || '';
+    $('riskBadge').textContent = (v.status || 'review').replaceAll('_', ' ');
+    $('attack').innerHTML = (f.attack_path || []).map(item => '<li>' + esc(item) + '</li>').join('');
+    $('verify').textContent = (v.event_evidence || '') + ' ' + (v.challenges || []).join(' ');
+    $('citation').innerHTML = (f.citations || []).map(citation =>
+      '<div class="evidence"><div class="meta">' + esc(citation.document_id || '') + ' · ' +
+      esc(citation.clause_reference || '') + ' · ' +
+      (citation.verified ? 'VERIFIED' : 'UNVERIFIED') + '</div><blockquote>' +
+      esc(citation.quote || '') + '</blockquote><div class="meta">' +
+      esc(citation.verification_note || '') + '</div></div>'
+    ).join('');
+
+    $('decision').textContent = (r.decision || 'review_required').replaceAll('_', ' ');
+    $('rationale').textContent = r.rationale || '';
+    $('asof').textContent = 'As of ' + (d.as_of_date || '');
+    const timeline = d.timeline || {};
+    $('timeline').innerHTML = (timeline.milestones || []).map(milestone =>
+      '<div class="milestone"><span class="date">' + esc(milestone.date || '') +
+      '</span><b>' + esc(milestone.title || '') + '</b><span class="tag">' +
+      esc(milestone.status || '') + '</span></div>'
+    ).join('') + '<p class="small">' + esc(timeline.worst_case_note || '') + '</p>';
+
+    const ops = d.portfolio_operations || {};
+    const opsTimeline = ops.timeline || {};
+    const opsCounts = opsTimeline.counts || {};
+    const finance = ops.financial_reconciliation || {};
+    const financeCounts = finance.counts || {};
+    $('operationsStatus').textContent = finance.status || 'Unavailable';
+    $('opsTimelineCount').textContent = opsCounts.total ?? 0;
+    $('opsTimelineSummary').textContent = (opsCounts.overdue || 0) + ' actionable deadlines overdue · ' +
+      (opsCounts.due_today || 0) + ' due today · ' + (opsCounts.upcoming || 0) + ' upcoming deadlines · ' +
+      (opsCounts.historical_references || 0) + ' historical/reference dates · ' +
+      (opsCounts.contract_milestones || 0) + ' contract-term milestones';
+    $('opsLedgerCount').textContent = financeCounts.transaction_candidates ?? 0;
+    $('opsLedgerSummary').textContent = (financeCounts.contract_linked_candidates || 0) +
+      ' contract-linked · ' + (financeCounts.unlinked_candidates || 0) + ' unlinked';
+    $('opsMilestones').innerHTML = (opsTimeline.milestones || []).slice(0, 30).map(item =>
+      '<div class="milestone"><span class="date">' + esc(item.date || '') +
+      '</span><b>' + esc(item.contract_id || '') + ' · ' + esc(item.title || '') +
+      '<div class="meta">' + esc(item.date_type || '') + ' · ' + esc(item.classification_note || '') + '</div></b><span class="tag">' + esc(item.status || '') + '</span></div>'
+    ).join('') || '<p class="small">No explicit calendar dates were found in the in-scope source documents.</p>';
+    $('opsLedger').innerHTML = (finance.payment_ledger_candidates || []).slice(0, 30).map(item =>
+      '<div class="agent"><b>' + esc(item.transaction_signal || 'Transaction signal') +
+      ' · ' + esc(item.contract_id || 'Contract not resolved') + '</b><p>' +
+      esc(item.timestamp || 'No timestamp') + ' · ' + esc((item.amounts_found || []).join(', ') || 'No explicit amount') +
+      '</p><p>' + esc(item.summary || item.evidence_text || '') + '</p><div class="meta">' +
+      esc(item.event_source || '') + ' · ' + esc(item.payment_status || item.contract_match_status || '') +
+      ' · ' + esc(item.reconciliation_status || '') + ' · Human review required</div></div>'
+    ).join('') || '<p class="small">No payment ledger or invoice/payment event candidates found as of this date.</p>';
+    $('opsNotice').textContent = finance.reconciliation_rule || ops.notice || '';
+
+    const queue = d.decision_queue || {};
+    const queueCounts = queue.counts || {};
+    $('decisionQueueStatus').textContent = queue.status || 'Unavailable';
+    $('decisionQueueCounts').innerHTML = [
+      ['High', queueCounts.high || 0], ['Medium', queueCounts.medium || 0],
+      ['Low', queueCounts.low || 0], ['Total', queueCounts.total || 0]
+    ].map(([label, value]) => '<span class="tag">' + esc(label) + ': ' + esc(value) + '</span>').join('');
+    $('decisionQueueItems').innerHTML = (queue.issues || []).slice(0, 18).map(item =>
+      '<div class="agent"><b>' + esc(item.priority || 'review').toUpperCase() + ' · ' +
+      esc(item.title || item.category || 'Review item') + '</b><div class="meta">' +
+      esc(item.contract_id || 'Contract not resolved') + ' · ' + esc(item.date || '') +
+      ' · ' + esc(item.status || '') + '</div><p>' + esc(item.reason || '') + '</p>' +
+      '<p class="small">Evidence: ' + esc(item.evidence_strength || 'not specified') + '</p>' +
+      '<p>' + esc(item.recommended_next_step || '') + '</p><div class="meta">Human review required</div></div>'
+    ).join('') || '<p class="small">No prioritized review items for the selected simulated date.</p>';
+    $('decisionQueueNotice').textContent = queue.notice || '';
+
+    const collaboration = d.collaboration || {};
+    const shared = d.shared_state || {};
+    const usage = d.api_usage || {};
+    $('collabStatus').textContent = (collaboration.loop_status || 'not reported').replaceAll('_', ' ');
+    $('collabMetrics').innerHTML = [
+      ['Iterations', (usage.iterations_used ?? collaboration.loop?.iterations_used ?? 0) + ' / ' + (usage.max_iterations ?? collaboration.loop?.max_iterations ?? 0)],
+      ['Agent/task calls', (usage.calls_used ?? 0) + ' / ' + (usage.max_calls ?? 0)],
+      ['Handoffs', collaboration.handoff_count ?? (d.agent_messages || []).length],
+      ['Human follow-up', collaboration.loop?.needs_human_follow_up ? 'Required' : 'Not flagged']
+    ].map(([label,value]) => '<span class="tag">' + esc(label) + ': ' + esc(value) + '</span>').join('');
+    $('collabAgents').innerHTML = Object.entries(collaboration.agents || {}).map(([name, item]) =>
+      '<div class="agent"><b>' + esc(name) + '</b><p>' + esc((item.status || 'unknown').replaceAll('_', ' ')) +
+      ' · iteration ' + esc(item.iteration ?? 0) + '</p><div class="meta">Reads: ' +
+      esc((item.consumes || []).join(', ') || '—') + '<br>Writes: ' +
+      esc((item.produces || []).join(', ') || '—') + '</div></div>'
+    ).join('') || '<p class="small">No agent status metadata returned.</p>';
+    const unresolved = collaboration.unresolved_questions || shared.unresolved_questions || [];
+    $('collabQuestions').innerHTML = unresolved.map(question =>
+      '<div class="agent"><p>' + esc(typeof question === 'string' ? question : JSON.stringify(question)) + '</p></div>'
+    ).join('') || '<p class="small">No unresolved questions were emitted by verification.</p>';
+    $('sharedStateSections').textContent = Object.keys(shared).filter(key =>
+      !['agent_messages','agent_status','iteration','api_usage','schema_version','status'].includes(key)
+    ).join(' · ') || 'Shared state unavailable';
+
+    const grounded = d.evidence_grounded_finding || {};
+    $('groundingStatus').textContent = (grounded.status || 'not reported').replaceAll('_', ' ');
+    $('groundingSummary').innerHTML = [
+      ['Finding', grounded.finding_id || f.finding_id || '—'],
+      ['Contract', grounded.contract_id || '—'],
+      ['Severity', grounded.severity || f.severity || 'review'],
+      ['Breach proven', grounded.breach_proven ? 'Yes' : 'No'],
+      ['Facts', (grounded.facts || []).join(' ') || 'No verified facts supplied'],
+      ['Interpretation', (grounded.interpretations || []).join(' ') || grounded.claim || f.claim || '—']
+    ].map(([label,value]) => '<div class="agent"><b>' + esc(label) + '</b><p>' + esc(value) + '</p></div>').join('');
+    $('groundingEvidence').innerHTML = (grounded.evidence || []).map(item =>
+      '<div class="evidence"><b>' + esc(item.document_id || 'Unknown source') + ' · ' +
+      esc(item.source_type || 'source') + '</b><div class="meta">' +
+      esc(item.clause_reference || '') + ' · ' + (item.verified ? 'VERIFIED' : 'UNVERIFIED') +
+      '</div><blockquote>' + esc(item.quote || '') + '</blockquote><p class="small">' +
+      esc(item.verification_note || '') + '</p></div>'
+    ).join('') || '<p class="small">No evidence records were returned.</p>';
+    $('groundingGaps').innerHTML = (grounded.missing_evidence || v.evidence_gaps || []).map(item =>
+      '<div class="agent"><p>' + esc(typeof item === 'string' ? item : JSON.stringify(item)) + '</p></div>'
+    ).join('') || '<p class="good">No missing evidence reported by verification.</p>';
+    $('groundingConflicts').innerHTML = (grounded.conflicting_evidence || []).map(item =>
+      '<div class="agent"><b>' + esc(item.title || item.source || 'Conflict') + '</b><p>' +
+      esc(item.description || item.claim || JSON.stringify(item)) + '</p></div>'
+    ).join('') || '<p class="small">No explicit source-to-source conflict was identified. Missing evidence is shown separately and is not treated as a conflict.</p>';
+
+    const loop = (d.collaboration || {}).loop || {};
+    const actionDraft = (d.ruling || {}).action_draft || {};
+    $('followupStatus').textContent = (d.collaboration || {}).loop_status || 'not reported';
+    $('loopStopReason').textContent = (loop.stop_reason || (d.api_usage || {}).stop_reason || 'Not reported').replaceAll('_', ' ');
+    $('loopBudget').textContent = 'Iterations ' + (loop.iterations_used ?? (d.api_usage || {}).iterations_used ?? 0) +
+      ' / ' + (loop.max_iterations ?? (d.api_usage || {}).max_iterations ?? 0) +
+      ' · Calls ' + ((d.api_usage || {}).calls_used ?? 0) + ' / ' + ((d.api_usage || {}).max_calls ?? 0);
+    $('loopRemainingGaps').innerHTML = (loop.remaining_gaps || grounded.missing_evidence || []).map(gap =>
+      '<p>' + esc(typeof gap === 'string' ? gap : JSON.stringify(gap)) + '</p>'
+    ).join('') || '<p class="good">No remaining gaps reported.</p>';
+    const actionTitle = actionDraft.subject || grounded.recommended_action || 'No next action was produced.';
+    const actionBody = actionDraft.body || '';
+    $('loopNextAction').textContent = actionTitle;
+    $('loopActionFull').textContent = actionBody || 'No additional request text was provided.';
+    $('loopActionDetails').classList.toggle('hidden', !actionBody || actionBody === actionTitle);
+    $('loopApproval').textContent = actionDraft.human_approval_required === false && actionDraft.status === 'approved' ?
+      'Approved by a human reviewer. This dashboard does not send the action.' :
+      'HUMAN APPROVAL REQUIRED · ' + (actionDraft.status || 'draft_only_not_sent').replaceAll('_', ' ') +
+      '. Draft only; no action is sent automatically.';
+
+    const draft = r.action_draft || {};
+    $('subject').textContent = draft.subject || 'No draft action';
+    $('actionType').textContent = (draft.type || 'review') + ' · human approval required';
+    $('body').textContent = draft.body || '';
+    $('actioncite').innerHTML = (draft.citations || []).map(citation =>
+      '<div class="meta">' + esc(citation.document_id || '') + ' · ' +
+      esc(citation.clause_reference || '') + ' · ' +
+      (citation.verified ? 'verified' : 'unverified') + '</div>'
+    ).join('');
+
+    $('audit').innerHTML = (d.agent_messages || []).map(message =>
+      '<div class="auditrow"><span>' + esc(message.from || '') + '</span><span>' +
+      esc((message.type || '').replaceAll('_', ' ')) + '</span><span class="tag">' +
+      esc(message.status || '') + '</span></div>'
+    ).join('');
+
+    const eventSummary = d.event_summary || {};
+    $('integrity').innerHTML = 'Contracts loaded: ' + Object.keys(docs).length +
+      ' portfolio documents analyzed.<br>Drop 1 events in date window: ' +
+      esc(eventSummary.drop1_events_available_as_of_date ?? 'n/a') +
+      '<br>Drop 2 events loaded: ' + esc(eventSummary.drop2_events_loaded ?? 'n/a') +
+      '<br>Parse errors are retained in run metadata.<br>Run status: ' + esc(d.status || 'unknown') +
+      '<br>Scope: ' + esc(d.scope || '');
+
+    currentAuditRunId = (d.audit || {}).run_id || d.run_id || null;
+    $('approvalRunLabel').textContent = currentAuditRunId ? 'Current run: ' + currentAuditRunId : 'Audit run ID not returned.';
+    $('approvalResult').textContent = 'Approval/rejection is recorded only; no consequential action is executed.';
+    await refreshAuditHistory(currentAuditRunId);
+    if (currentAuditRunId) await inspectAuditRun(currentAuditRunId);
+    // Refresh the overview KPIs and evidence-backed relationship graph after all analysis cards render.
+    updateOverviewAndGraph();
+    latestOdinData = d;
+    populateAgentActivity(d);
+    populateEsignDraft();
+    renderDeadlineCalendar();
+    $('loading').classList.add('hidden');
+    $('dash').classList.remove('hidden');
+    $('error').classList.add('hidden');
+    renderOdinDashboardFR9(d);
+    renderOdinSynthesis(d);
+    if($('fr9HeatmapMode'))$('fr9HeatmapMode').onchange=()=>renderOdinDashboardFR9(d);
+  } catch (error) {
+    $('loading').textContent = 'Run failed safely: ' + error.message;
+    $('error').textContent = 'The run could not be completed. Check the backend logs; no action was sent automatically.';
+    $('error').classList.remove('hidden');
+  } finally {
+    button.disabled = false;
+  }
+}
+async function initOdinApp(){
+  const health=$('health');
+  try{
+    const data=await get('/api/health');
+    if(health)health.textContent=(data.status==='ok'?'Backend connected':'Backend status: '+(data.status||'unknown'));
+    if(health)health.title='Project: '+(data.project||'Odin')+' · Security: '+(data.security_mode||'not reported');
+  }catch(error){
+    if(health){health.textContent='Backend unavailable';health.title=error.message;}
+    $('loading').textContent='Odin could not connect to the backend. Check that the API server is running, then refresh. Details: '+error.message;
+    $('error').textContent='Connection failed. Verify the backend terminal and open /api/health to check API availability.';
+    $('error').classList.remove('hidden');
+    return;
+  }
+  await runOdin();
+}
+
+if($('apiToken')){$('apiToken').value=sessionStorage.getItem('odinApiToken')||'';$('apiToken').addEventListener('input',()=>sessionStorage.setItem('odinApiToken',$('apiToken').value));}
+setupOdinPages();initFR9TimeSlider();initOdinApp();$('customAnalyzeButton')?.addEventListener('click',runCustomPortfolio);$('customIngestEvents')?.addEventListener('click',ingestCustomEvents);$('date').addEventListener('change',runOdin);$('approveAction').addEventListener('click',()=>submitAuditDecision('approved'));$('rejectAction').addEventListener('click',()=>submitAuditDecision('rejected'));
+</script></div>
+<script>
+(function(){
+ const hero=document.getElementById('odinHero'),shell=document.getElementById('odinAppShell');
+ function enterOdin(target){
+   hero.classList.add('hidden');shell.classList.remove('hidden');document.body.style.padding='0 2.35vw 30px';
+   if(target&&window.odinShowPage)window.odinShowPage(target);
+   else if(target){const b=document.querySelector('[data-page="'+target+'"]');if(b)b.click();}
+   if(location.hash!=='#workspace')history.replaceState(null,'','#workspace');
+ }
+ document.querySelectorAll('[data-enter-odin]').forEach(b=>b.addEventListener('click',()=>enterOdin()));
+ document.querySelectorAll('[data-hero-target]').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();enterOdin(a.dataset.heroTarget)}));
+ window.odinEnterWorkspace=enterOdin;
+ if(location.hash==='#workspace'||location.hash.startsWith('#workspace/'))enterOdin();
+})();
+</script>
+
+<script>
+const odinAgentDetails={
+ Odin:{glyph:'◎',role:'Orchestrator',reads:'Company context, contract inventory, agent status',writes:'Run plan, delegation, synthesis',note:'Coordinates bounded workstreams and gathers outputs; it should not claim completion where an agent output is absent.'},
+ Thor:{glyph:'T',role:'Contract extraction',reads:'Contract source text and requested fields',writes:'Terms, obligations, source quotes, ambiguities',note:'Findings should be traced to exact source text; uncertain interpretation remains flagged.'},
+ Norns:{glyph:'◷',role:'Timeline projection',reads:'Dated obligations, terms, simulated date',writes:'Milestones, overdue/upcoming classification, projections',note:'Dates are shown only when returned or grounded in supplied terms.'},
+ Loki:{glyph:'⚔',role:'Adversarial review',reads:'Extracted terms and candidate findings',writes:'Attack paths, potential conflicts, severity candidates',note:'Challenges claims and surfaces counter-arguments; not a legal verdict.'},
+ Heimdall:{glyph:'◈',role:'Event verification',reads:'Event feed, source evidence, clauses',writes:'Event mapping, provenance, unresolved authenticity',note:'Separates matching signals from verified authenticity, causation, or breach.'},
+ Tyr:{glyph:'⚖',role:'Ruling & action draft',reads:'Risk challenges, verification, evidence gaps',writes:'Rationale, draft notice/amendment, approval gate',note:'Produces draft-only actions that require an authorized human approval.'}
+};
+let latestOdinData=null,selectedScenario='payment';
+function populateAgentActivity(d){
+ latestOdinData=d||latestOdinData;
+ const messages=(latestOdinData?.agent_messages||[]),collab=latestOdinData?.collaboration?.agents||{};
+ const list=$('agentClickList');if(!list)return;
+ list.innerHTML=Object.entries(odinAgentDetails).map(([name,a])=>{
+  const state=collab[name.toLowerCase()]||collab[name]||{},msgs=messages.filter(m=>(m.from||'').toLowerCase()===name.toLowerCase()||(m.to||'').toLowerCase()===name.toLowerCase());
+  return '<button class="agent-button" type="button" data-inspect-agent="'+name+'" aria-pressed="'+(name==='Odin')+'"><span class="agent-glyph">'+a.glyph+'</span><span><b>'+name+' · '+a.role+'</b><br><small>'+(state.status||msgs.length+' trace entries')+'</small></span></button>';
+ }).join('');
+ list.querySelectorAll('[data-inspect-agent]').forEach(b=>b.addEventListener('click',()=>showAgentWork(b.dataset.inspectAgent)));
+ showAgentWork('Odin');
+}
+function showAgentWork(name){
+ const a=odinAgentDetails[name];if(!a)return;
+ const d=latestOdinData||{},messages=d.agent_messages||[],items=messages.filter(m=>(m.from||'').toLowerCase()===name.toLowerCase()||(m.to||'').toLowerCase()===name.toLowerCase());
+ const state=(d.collaboration?.agents||{})[name.toLowerCase()]||(d.collaboration?.agents||{})[name]||{};
+ document.querySelectorAll('[data-inspect-agent]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.inspectAgent===name)));
+ const output=items.length?items.map(m=>'<div style="padding:9px 0;border-bottom:1px solid #302f44"><b>'+esc(m.type||'handoff')+'</b> · '+esc(m.status||'status not reported')+'<p>'+esc(m.summary||m.message||m.task||'No message body in returned trace.')+'</p></div>').join(''):'No message addressed to or emitted by this agent was returned for the current run. This does not imply that its work completed.';
+ $('agentWorkDetail').innerHTML='<div class="eyebrow">'+esc(a.role)+'</div><h4>'+esc(name)+' · Work record</h4><p>'+esc(a.note)+'</p><div class="flow"><span class="tag">State: '+esc((state.status||'not separately reported').replaceAll('_',' '))+'</span><span class="tag">Iteration: '+esc(state.iteration??'—')+'</span><span class="tag">Trace items: '+items.length+'</span></div><p><b>Reads:</b> '+esc(a.reads)+'<br><b>Writes:</b> '+esc(a.writes)+'</p><h4>Latest trace</h4>'+output;
+}
+const recoveryScenarios={
+ payment:{title:'Payment deadline missed',steps:['Preserve the contract, invoice, proof of delivery/performance, payment instructions, and payment records.','Check the exact due-date definition, disputed-invoice process, cure period, interest, notice method, and any payment hold rights.','Reconcile invoice identity, amount, currency, credits, prior payments, and counterparty before asserting a balance.','Escalate internally to the contract owner and finance; prepare a factual, rights-reserving communication for legal review.','Agree a documented remediation/payment plan only through an authorized approver.'],avoid:'Do not assume an amount is owed from a ledger signal alone or admit liability without checking the contract.'},
+ renewal:{title:'Renewal or termination window missed',steps:['Retrieve the executed agreement and every amendment/addendum that may change the term or notice window.','Verify the clause, effective date, delivery method, recipient, time zone, business-day rule, and evidence of notice.','Establish whether the deadline is truly passed and whether the agreement provides an extension, cure, waiver, or mutual-change route.','Ask counsel to assess options and required approvals before contacting the counterparty.','Record the decision, next date, source clause, owner, and evidence of delivery in the contract calendar.'],avoid:'Do not assume a missed window automatically renews or terminates the agreement; the wording and governing law matter.'},
+ delivery:{title:'Delivery or performance milestone missed',steps:['Capture the statement of work, acceptance criteria, dependency log, delivery records, and communications.','Check the milestone, acceptance/rejection rules, grace periods, service credits, and notice/cure provisions.','Identify whether the cause was supplier, customer dependency, force majeure, change control, or unresolved evidence.','Create a recovery plan with owner, new target date, dependency, and proof of completion.','Route any reservation-of-rights notice, service-credit position, or amendment through legal/contract approval.'],avoid:'Do not label a delivery issue a breach before verifying the obligation, dependency, acceptance terms, and exceptions.'},
+ notice:{title:'Notice deadline missed',steps:['Identify the exact notice clause, mandatory delivery channel, address, recipient and deemed-receipt rule.','Gather proof of all attempted communications, including sent messages, tracking, portal receipts and timestamps.','Check whether late notice, waiver, extension, or other cure is explicitly allowed; consult counsel on consequences.','Prepare a factual chronology and a draft request for confirmation or mutually agreed next steps.','Update the calendar with follow-up dates and a responsible owner after approval.'],avoid:'Do not backdate a notice, claim delivery that cannot be proved, or send a legally consequential notice without authorization.'},
+ security:{title:'Security or confidentiality response deadline',steps:['Activate the approved incident-response process and preserve logs, scope, timestamps, and chain of custody.','Locate the security/data-processing/confidentiality clauses and check separate statutory or regulator timelines with counsel.','Assess what is known versus unverified: affected data, counterparties, systems, containment, and notification triggers.','Notify the privacy/security/legal owners immediately and route any external notice through the approved incident process.','Track each verified deadline, evidence owner, approval, delivery receipt, and next update.'],avoid:'Do not wait for contract analysis if incident-response escalation is required; statutory clocks may apply independently.'}
+};
+function renderRecoveryScenario(key){
+ selectedScenario=key;document.querySelectorAll('[data-scenario]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.scenario===key)));
+ const s=recoveryScenarios[key];$('scenarioOutput').innerHTML='<h4>'+s.title+'</h4><ol>'+s.steps.map(x=>'<li style="margin:7px 0">'+esc(x)+'</li>').join('')+'</ol><p><b>Important:</b> '+esc(s.avoid)+'</p><p class="small">Scenario guidance only · Confirm against the exact executed agreement and obtain appropriate approval before action.</p>';
+}
+function getCalendarItems(){
+ const d=latestOdinData||{},items=[];
+ const all=[...(d.portfolio_operations?.timeline?.milestones||[]),...(d.timeline?.milestones||[])];
+ const seen=new Set();
+ for(const m of all){const date=String(m.date||'').slice(0,10);if(!/^\d{4}-\d{2}-\d{2}$/.test(date))continue;const key=[date,m.title||'',m.contract_id||''].join('|');if(seen.has(key))continue;seen.add(key);items.push({date,title:m.title||m.obligation||'Contract milestone',contract:m.contract_id||'',status:m.status||'review',type:m.date_type||'milestone'});}
+ const q=d.decision_queue?.issues||[];for(const m of q){const date=String(m.date||'').slice(0,10);if(/^\d{4}-\d{2}-\d{2}$/.test(date)){const key=[date,m.title||'',m.contract_id||''].join('|');if(!seen.has(key)){seen.add(key);items.push({date,title:m.title||m.category||'Review item',contract:m.contract_id||'',status:m.status||m.priority||'review',type:'decision queue'});}}}
+ return items;
+}
+function renderDeadlineCalendar(){
+ const host=$('deadlineCalendar');if(!host)return;
+ const month=$('calendarMonth').value||'2027-03',parts=month.split('-').map(Number),year=parts[0],mi=parts[1]-1,first=new Date(year,mi,1),days=new Date(year,mi+1,0).getDate(),offset=(first.getDay()+6)%7;
+ const all=getCalendarItems(),monthItems=all.filter(i=>i.date.startsWith(month));let html='';
+ const labels=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+ for(const day of labels)html+='<div class="day-cell" style="min-height:auto;background:transparent;border:0;cursor:default"><strong>'+day+'</strong></div>';
+ for(let i=0;i<offset;i++)html+='<div class="day-cell" style="opacity:.25;cursor:default"></div>';
+ for(let d=1;d<=days;d++){const date=year+'-'+String(mi+1).padStart(2,'0')+'-'+String(d).padStart(2,'0'),these=monthItems.filter(i=>i.date===date);
+ html+='<button class="day-cell" type="button" data-calendar-date="'+date+'"><strong>'+d+'</strong>'+these.slice(0,2).map(i=>'<div class="day-event">'+esc(i.title)+'</div>').join('')+(these.length>2?'<small>+'+(these.length-2)+' more</small>':'')+'</button>';}
+ host.innerHTML=html||'<p>No days to show.</p>';
+ host.querySelectorAll('[data-calendar-date]').forEach(b=>b.addEventListener('click',()=>{const date=b.dataset.calendarDate,these=all.filter(i=>i.date===date);$('calendarDayDetail').innerHTML='<b>'+date+'</b><p>'+(these.length?these.map(i=>'<div style="padding:8px 0;border-bottom:1px solid #302f44"><b>'+esc(i.title)+'</b><br><span class="small">'+esc(i.contract)+' · '+esc(i.type)+' · '+esc(i.status)+'</span></div>').join(''):'No returned milestones for this date.')+'</p>'; }));
+}
+function populateEsignDraft(){
+ const d=latestOdinData||{},draft=d.ruling?.action_draft||d.action_draft||{},finding=d.evidence_grounded_finding||{};
+ const title=draft.subject||finding.recommended_action||'Contract notice / amendment draft';
+ const body=draft.body||('Review the contract evidence and the following finding before taking action.\n\nFinding: '+(finding.claim||d.finding?.claim||'No current claim returned.')+'\n\nRationale: '+(d.ruling?.rationale||d.rationale||'No rationale returned.')+'\n\nThis draft requires legal and business approval before issue.');
+ $('esignTitle').value=title;$('esignDocTitle').textContent=title;$('esignDocMeta').textContent='Run '+(d.run_id||d.audit?.run_id||'not identified')+' · Draft only · Human review required';$('esignBody').value=body;$('esignStatus').textContent='Draft generated · not signed';
+}
+function initNewOdinPanels(){
+ document.querySelectorAll('[data-scenario]').forEach(b=>b.addEventListener('click',()=>renderRecoveryScenario(b.dataset.scenario)));
+ $('copyScenario')?.addEventListener('click',async()=>{const text=recoveryScenarios[selectedScenario].title+'\n'+recoveryScenarios[selectedScenario].steps.map((s,i)=>(i+1)+'. '+s).join('\n')+'\nImportant: '+recoveryScenarios[selectedScenario].avoid;try{await navigator.clipboard.writeText(text);$('copyScenario').textContent='Copied';}catch(e){$('copyScenario').textContent='Copy not available in this browser';}});
+ $('calendarMonth')?.addEventListener('change',renderDeadlineCalendar);$('refreshDeadlineCalendar')?.addEventListener('click',renderDeadlineCalendar);
+ $('generateEsignDraft')?.addEventListener('click',populateEsignDraft);
+ $('recordSignatureIntent')?.addEventListener('click',()=>{const who=$('signerName').value.trim();if(!who){$('esignStatus').textContent='Enter the authorized signer name first';return;}if(!$('esignBody').value.trim()){ $('esignStatus').textContent='Prepare a draft before recording intent';return;}$('esignStatus').textContent='Signature intent recorded locally for '+who+' · not a cryptographic or legally binding e-signature';$('esignDocMeta').textContent='Signature intent by '+who+' · local prototype record only';});
+ $('downloadEsignDraft')?.addEventListener('click',()=>{const text=$('esignTitle').value+'\n\n'+$('esignBody').value+'\n\nDraft status: human approval required. Signature intent in this prototype is not a legal e-signature.';const blob=new Blob([text],{type:'text/plain;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=($('esignTitle').value||'odin-contract-draft').replace(/[^A-Za-z0-9-_]+/g,'-')+'.txt';a.click();URL.revokeObjectURL(url);});
+ renderRecoveryScenario('payment');renderDeadlineCalendar();
+}
+initNewOdinPanels();
+const odinRenderObserver=new MutationObserver(()=>{
+ const dash=$('dash');
+ if(dash&&!dash.classList.contains('hidden')){
+   const esign=$('esignPanel');if(esign&&!esign.dataset.ready){esign.dataset.ready='1';}
+   renderDeadlineCalendar();
+ }
+});
+const odinDash=$('dash');if(odinDash)odinRenderObserver.observe(odinDash,{attributes:true,attributeFilter:['class']});
+</script>
+</body></html>
